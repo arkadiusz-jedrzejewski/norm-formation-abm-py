@@ -12,5 +12,9 @@ if __name__ == "__main__":
     print(os.listdir())
     dirlist = [item for item in os.listdir() if os.path.isdir(item)]
     print(dirlist)
+    for item in dirlist:
+        print(item)
+        print(item.split("-"))
+
 
     # os.system("norm_formation_abm.exe 10 0.2 3 0.5 10000 1 200 name.txt")
