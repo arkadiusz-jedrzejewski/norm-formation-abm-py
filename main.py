@@ -3,7 +3,7 @@ import os
 from datetime import date
 import subprocess
 import multiprocessing as mp
-import partial
+from functools import partial
 
 
 def get_dir_name():
