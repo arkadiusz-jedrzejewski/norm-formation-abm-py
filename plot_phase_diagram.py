@@ -22,6 +22,7 @@ print(sim_num)
 t_start = 800
 cs = np.zeros((len(ps), sim_num))
 xs = np.zeros((len(ps), sim_num))
+us = np.zeros((len(ps), sim_num))
 print(cs.shape)
 plt.figure(1)
 for i in range(len(ps)):
@@ -29,9 +30,11 @@ for i in range(len(ps)):
         single_sim = np.loadtxt(dir_name + f"/{i}/sim-{sim_number}.txt")
         single_sim = single_sim[t_start:]
         single_sim2 = [(2 * x - 1) ** 2 for x in single_sim]
+        single_sim4 = [(2 * x - 1) ** 4 for x in single_sim]
         single_sim = [max(x, 1 - x) for x in single_sim]
         cs[i, sim_number] = np.mean(single_sim)
         xs[i, sim_number] = np.mean(single_sim2) - (2 * cs[i, sim_number] - 1) ** 2
+        us[i, sim_number] = 1 - np.mean(single_sim4) / (3 * np.mean(single_sim2) ** 2)
         plt.plot(single_sim)
         print(np.mean(single_sim))
 
@@ -50,4 +53,9 @@ plt.figure(4)
 plt.errorbar(ps, np.mean(xs, axis=1), yerr=get_sem(xs), fmt='.-')
 plt.xlabel("nonconformity probability")
 plt.ylabel("fluctuation")
+
+plt.figure(5)
+plt.errorbar(ps, np.mean(us, axis=1), yerr=get_sem(us), fmt='.-')
+plt.xlabel("nonconformity probability")
+plt.ylabel("Binder cumulant")
 plt.show()
