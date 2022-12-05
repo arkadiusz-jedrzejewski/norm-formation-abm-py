@@ -14,8 +14,8 @@ print(sim_num)
 cs = np.zeros(ps.shape)
 plt.figure(1)
 for i in range(len(ps)):
-    single_sim = np.loadtxt(dir_name + f"/{i}/sim-{0}.txt")
-    cs[i] = single_sim[-1]
+    single_sim = np.loadtxt(dir_name + f"/{i}/sim-{1}.txt")
+    cs[i] = max(single_sim[-1], 1 - single_sim[-1])
     plt.plot(single_sim)
     print(single_sim)
 
