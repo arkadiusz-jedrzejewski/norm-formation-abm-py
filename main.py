@@ -3,6 +3,7 @@ import os
 from datetime import date
 import subprocess
 import multiprocessing as mp
+import partial
 
 
 def get_dir_name():
@@ -25,7 +26,7 @@ def get_dir_name():
     return dir_name
 
 
-def run_single_sim(seed, p_tuple, q, f, system_size, init_opinions, time_horizon, p_dir_name):
+def run_single_sim(p_tuple, seed, q, f, system_size, init_opinions, time_horizon, p_dir_name):
     p_index, p, sim_number = p_tuple
     file_name = p_dir_name + f"/{p_index}/sim-{sim_number}"
     subprocess.run(
@@ -62,13 +63,16 @@ if __name__ == "__main__":
         for sim_number in sims:
             p_tuples.append((p_index, ps[p_index], sim_number))
 
-    print(p_tuples)
-    run_single_sim(seed=10,
-                   p_tuple=(0, 0.2, 1),
-                   q=3,
-                   f=0.5,
-                   system_size=10000,
-                   init_opinions=1,
-                   time_horizon=200,
-                   p_dir_name=dir_name)
+    with mp.Pool(1) as pool:
+        pool.map(partial(run_single_sim,
+                         seed=10,
+                         q=3,
+                         f=0.5,
+                         system_size=10000,
+                         init_opinions=1,
+                         time_horizon=200,
+                         p_dir_name=dir_name
+                         ),
+                 p_tuples)
+
     # os.system("norm_formation_abm.exe 10 0.2 3 0.5 10000 1 200 name.txt")
