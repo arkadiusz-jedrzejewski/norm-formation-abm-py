@@ -28,7 +28,7 @@ def get_dir_name():
 
 def run_single_sim(p_tuple, seed, q, f, system_size, init_opinions, time_horizon, p_dir_name):
     p_index, p, sim_number = p_tuple
-    file_name = p_dir_name + f"/{p_index}/sim-{sim_number}"
+    file_name = p_dir_name + f"/{p_index}/sim-{sim_number}.txt"
     subprocess.run(
         f"norm_formation_abm.exe {seed} {p} {q} {f} {system_size} {init_opinions} {time_horizon} {file_name}")
 
