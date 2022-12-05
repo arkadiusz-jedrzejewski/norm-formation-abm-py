@@ -44,7 +44,7 @@ if __name__ == "__main__":
     ps = np.linspace(p_start, p_stop, p_num)
     ps_index = np.arange(p_num)
 
-    sim_num = 1
+    sim_num = 2
     sims = np.arange(sim_num)
 
     print(ps)
@@ -63,14 +63,14 @@ if __name__ == "__main__":
         for sim_number in sims:
             p_tuples.append((p_index, ps[p_index], sim_number))
 
-    with mp.Pool(2) as pool:
+    with mp.Pool(6) as pool:
         pool.map(partial(run_single_sim,
                          seed=10,
                          q=3,
                          f=0.5,
                          system_size=10000,
                          init_opinions=1,
-                         time_horizon=200,
+                         time_horizon=1000,
                          p_dir_name=dir_name
                          ),
                  p_tuples)
