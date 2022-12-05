@@ -1,6 +1,8 @@
 import numpy as np
 import os
 from datetime import date
+import subprocess
+import multiprocessing as mp
 
 
 def get_dir_name():
@@ -21,6 +23,13 @@ def get_dir_name():
     dir_name = today.strftime("%y%m%d") + '-sim-' + str(next_index)
 
     return dir_name
+
+
+def run_single_sim(seed, p_tuple, q, f, system_size, init_opinions, time_horizon, p_dir_name):
+    p_index, p, sim_number = p_tuple
+    file_name = p_dir_name + f"/{p_index}/sim-{sim_number}"
+    subprocess.run(
+        f"norm_formation_abm.exe {seed} {p} {q} {f} {system_size} {init_opinions} {time_horizon} {file_name}")
 
 
 if __name__ == "__main__":
@@ -50,4 +59,12 @@ if __name__ == "__main__":
         if not os.path.exists(dir_name + f"/{i}"):
             os.mkdir(dir_name + f"/{i}")
 
+    run_single_sim(seed=10,
+                   p_tuple=(0, 0.2, 1),
+                   q=3,
+                   f=0.5,
+                   system_size=10000,
+                   init_opinions=1,
+                   time_horizon=200,
+                   p_dir_name=dir_name)
     # os.system("norm_formation_abm.exe 10 0.2 3 0.5 10000 1 200 name.txt")
