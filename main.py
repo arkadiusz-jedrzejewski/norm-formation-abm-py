@@ -43,7 +43,7 @@ if __name__ == "__main__":
     ps = np.linspace(p_start, p_stop, p_num)
     ps_index = np.arange(p_num)
 
-    sim_num = 10
+    sim_num = 2
     sims = np.arange(sim_num)
 
     print(ps)
@@ -55,10 +55,14 @@ if __name__ == "__main__":
                fmt="%.8f, " * 2 + "%i, %i",
                header="p_start, p_stop, p_num, sim_num")
 
-    for i in ps_index:
-        if not os.path.exists(dir_name + f"/{i}"):
-            os.mkdir(dir_name + f"/{i}")
+    p_tuples = []
+    for p_index in ps_index:
+        if not os.path.exists(dir_name + f"/{p_index}"):
+            os.mkdir(dir_name + f"/{p_index}")
+        for sim_number in sims:
+            p_tuples.append((p_index, ps[p_index], sim_number))
 
+    print(p_tuples)
     run_single_sim(seed=10,
                    p_tuple=(0, 0.2, 1),
                    q=3,
