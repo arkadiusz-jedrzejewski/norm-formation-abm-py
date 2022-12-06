@@ -26,8 +26,8 @@ def get_dir_name():
     return dir_name
 
 
-def run_single_sim(p_tuple, seed, q, f, system_size, init_opinions, time_horizon, p_dir_name):
-    p_index, p, sim_number = p_tuple
+def run_single_sim(p_tuple, q, f, system_size, init_opinions, time_horizon, p_dir_name):
+    p_index, p, sim_number, seed = p_tuple
     file_name = p_dir_name + f"/{p_index}/sim-{sim_number}.txt"
     subprocess.run(
         f"norm_formation_abm.exe {seed} {p} {q} {f} {system_size} {init_opinions} {time_horizon} {file_name}")
@@ -57,15 +57,16 @@ if __name__ == "__main__":
                header="p_start, p_stop, p_num, sim_num")
 
     p_tuples = []
+    seed = 1
     for p_index in ps_index:
         if not os.path.exists(dir_name + f"/{p_index}"):
             os.mkdir(dir_name + f"/{p_index}")
         for sim_number in sims:
-            p_tuples.append((p_index, ps[p_index], sim_number))
+            p_tuples.append((p_index, ps[p_index], sim_number, seed))
+            seed += 1000
 
     with mp.Pool(6) as pool:
         pool.map(partial(run_single_sim,
-                         seed=10,
                          q=3,
                          f=0.5,
                          system_size=10000,
