@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     print(ps)
     print(ps_index)
-    np.savetxt(dir_name + "/probs.csv", np.column_stack((ps_index, ps)), fmt=("%i", "%.18f"))
+    np.savetxt(dir_name + "/probs.csv", np.column_stack((ps_index, ps)), fmt="%i, %.18f")
     np.savetxt(dir_name + "/sim_num.csv", [sim_num], fmt="%i")
     np.savetxt(dir_name + "/params.csv",
                [[p_start, p_stop, p_num, sim_num]],
@@ -61,9 +61,12 @@ if __name__ == "__main__":
     for p_index in ps_index:
         if not os.path.exists(dir_name + f"/{p_index}"):
             os.mkdir(dir_name + f"/{p_index}")
+        seeds = []
         for sim_number in sims:
             p_tuples.append((p_index, ps[p_index], sim_number, seed))
+            seeds.append(seed)
             seed += 1000
+        np.savetxt(dir_name + f"/{p_index}/seeds.csv", np.column_stack((sims, seeds)), fmt="%i, %i")
 
     with mp.Pool(6) as pool:
         pool.map(partial(run_single_sim,
