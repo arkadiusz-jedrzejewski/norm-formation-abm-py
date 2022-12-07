@@ -10,9 +10,9 @@ def get_sem(data):
 
 
 print("phase diagram")
-dir_name = "221206-sim-7"
+dir_name = "221207-sim-2"
 
-probs = np.loadtxt(dir_name + "/probs.csv")
+probs = np.loadtxt(dir_name + "/probs.csv", delimiter=",")
 ps = probs[:, 1]
 print(ps)
 
