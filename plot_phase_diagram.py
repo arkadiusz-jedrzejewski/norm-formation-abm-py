@@ -9,19 +9,28 @@ def get_sem(data):
     return np.std(data, axis=1, ddof=1) / np.sqrt(np.size(data, axis=1))
 
 
-dir_name = "221207-sim-1"
+dir_name = "221208-sim-1"
 
 probs = np.loadtxt(dir_name + "/probs.csv", delimiter=",")
 ps = probs[:, 1]
 
 sim_num = np.loadtxt(dir_name + "/sim_num.csv", dtype=int)
 params = np.loadtxt(dir_name + "/params.csv", delimiter=",")
+
+p_start, p_end, p_num = params[0], params[1], int(params[2])
+q, f, = params[4], params[5]
+time_horizon, system_size = int(params[6]), int(params[7])
+
 form = '<15'
 print(f"{'loaded data:':{form}}{dir_name}",
       f"{'sim_num:':{form}}{sim_num}",
-      f"{'p_start:':{form}}{params[0]}",
-      f"{'p_end:':{form}}{params[1]}",
-      f"{'p_num:':{form}}{int(params[2])}",
+      f"{'p_start:':{form}}{p_start}",
+      f"{'p_end:':{form}}{p_end}",
+      f"{'p_num:':{form}}{p_num}",
+      f"{'q:':{form}}{q}",
+      f"{'f:':{form}}{f}",
+      f"{'time_horizon:':{form}}{time_horizon}",
+      f"{'system_size:':{form}}{system_size}",
       sep="\n")
 
 t_start = 800
