@@ -47,14 +47,19 @@ if __name__ == "__main__":
     sim_num = 2
     sims = np.arange(sim_num)
 
+    q = 3
+    f = 0.5
+    system_size = 10000
+    time_horizon = 1000
+
     print(ps)
     print(ps_index)
     np.savetxt(dir_name + "/probs.csv", np.column_stack((ps_index, ps)), fmt="%i, %.18f")
     np.savetxt(dir_name + "/sim_num.csv", [sim_num], fmt="%i")
     np.savetxt(dir_name + "/params.csv",
-               [[p_start, p_stop, p_num, sim_num]],
-               fmt="%.8f, " * 2 + "%i, %i",
-               header="p_start, p_stop, p_num, sim_num")
+               [[p_start, p_stop, p_num, sim_num, q, f, time_horizon, system_size]],
+               fmt="%.8f, " * 2 + "%i, %i, %.8f, %.8f, %i, %i",
+               header="p_start, p_stop, p_num, sim_num, q, f, time_horizon, system_size")
 
     p_tuples = []
     seed = 1
@@ -70,11 +75,11 @@ if __name__ == "__main__":
 
     with mp.Pool(6) as pool:
         pool.map(partial(run_single_sim,
-                         q=3,
-                         f=0.5,
-                         system_size=10000,
+                         q=q,
+                         f=f,
+                         system_size=system_size,
                          init_opinions=1,
-                         time_horizon=1000,
+                         time_horizon=time_horizon,
                          p_dir_name=dir_name
                          ),
                  p_tuples)
