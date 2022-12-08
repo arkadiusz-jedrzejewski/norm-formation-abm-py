@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from theoretical_module import get_fixed_points
 
 
 def get_sem(data):
@@ -41,7 +42,7 @@ cs = np.zeros((len(ps), sim_num))
 xs = np.zeros((len(ps), sim_num))
 us = np.zeros((len(ps), sim_num))
 
-plt.figure(1)
+# plt.figure(1)
 for i in range(len(ps)):
     for sim_number in range(sim_num):
         single_sim = np.loadtxt(dir_name + f"/{i}/sim-{sim_number}.txt")
@@ -52,17 +53,21 @@ for i in range(len(ps)):
         cs[i, sim_number] = np.mean(single_sim)
         xs[i, sim_number] = np.mean(single_sim2) - (2 * cs[i, sim_number] - 1) ** 2
         us[i, sim_number] = 1 - np.mean(single_sim4) / (3 * np.mean(single_sim2) ** 2)
-        plt.plot(single_sim)
+        # plt.plot(single_sim)
 
 # plt.figure(2)
 # plt.plot(ps, cs, ".-")
 # plt.xlabel("nonconformity probability")
 # plt.ylabel("concentration")
 #
-# plt.figure(3)
-# plt.errorbar(ps, np.mean(cs, axis=1), yerr=get_sem(cs), fmt='.-')
-# plt.xlabel("nonconformity probability")
-# plt.ylabel("concentration")
+
+ps_theo, cs_theo = get_fixed_points(num=100, q=q, f=f, is_quenched=True)
+
+plt.figure(3)
+plt.plot(ps_theo, cs_theo, 'r')
+plt.errorbar(ps, np.mean(cs, axis=1), yerr=get_sem(cs), fmt='.')
+plt.xlabel("nonconformity probability")
+plt.ylabel("concentration")
 #
 # plt.figure(4)
 # plt.errorbar(ps, np.mean(xs, axis=1), yerr=get_sem(xs), fmt='.-')
@@ -73,4 +78,5 @@ for i in range(len(ps)):
 # plt.errorbar(ps, np.mean(us, axis=1), yerr=get_sem(us), fmt='.-')
 # plt.xlabel("nonconformity probability")
 # plt.ylabel("Binder cumulant")
-# plt.show()
+
+plt.show()
