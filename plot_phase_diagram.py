@@ -9,21 +9,26 @@ def get_sem(data):
     return np.std(data, axis=1, ddof=1) / np.sqrt(np.size(data, axis=1))
 
 
-print("phase diagram")
-dir_name = "221207-sim-2"
+dir_name = "221207-sim-1"
 
 probs = np.loadtxt(dir_name + "/probs.csv", delimiter=",")
 ps = probs[:, 1]
-print(ps)
 
 sim_num = np.loadtxt(dir_name + "/sim_num.csv", dtype=int)
-print(sim_num)
+params = np.loadtxt(dir_name + "/params.csv", delimiter=",")
+form = '<15'
+print(f"{'loaded data:':{form}}{dir_name}",
+      f"{'sim_num:':{form}}{sim_num}",
+      f"{'p_start:':{form}}{params[0]}",
+      f"{'p_end:':{form}}{params[1]}",
+      f"{'p_num:':{form}}{int(params[2])}",
+      sep="\n")
 
 t_start = 800
 cs = np.zeros((len(ps), sim_num))
 xs = np.zeros((len(ps), sim_num))
 us = np.zeros((len(ps), sim_num))
-print(cs.shape)
+
 plt.figure(1)
 for i in range(len(ps)):
     for sim_number in range(sim_num):
@@ -36,26 +41,24 @@ for i in range(len(ps)):
         xs[i, sim_number] = np.mean(single_sim2) - (2 * cs[i, sim_number] - 1) ** 2
         us[i, sim_number] = 1 - np.mean(single_sim4) / (3 * np.mean(single_sim2) ** 2)
         plt.plot(single_sim)
-        print(np.mean(single_sim))
 
-print(get_sem(cs))
-plt.figure(2)
-plt.plot(ps, cs, ".-")
-plt.xlabel("nonconformity probability")
-plt.ylabel("concentration")
-
-plt.figure(3)
-plt.errorbar(ps, np.mean(cs, axis=1), yerr=get_sem(cs), fmt='.-')
-plt.xlabel("nonconformity probability")
-plt.ylabel("concentration")
-
-plt.figure(4)
-plt.errorbar(ps, np.mean(xs, axis=1), yerr=get_sem(xs), fmt='.-')
-plt.xlabel("nonconformity probability")
-plt.ylabel("fluctuation")
-
-plt.figure(5)
-plt.errorbar(ps, np.mean(us, axis=1), yerr=get_sem(us), fmt='.-')
-plt.xlabel("nonconformity probability")
-plt.ylabel("Binder cumulant")
-plt.show()
+# plt.figure(2)
+# plt.plot(ps, cs, ".-")
+# plt.xlabel("nonconformity probability")
+# plt.ylabel("concentration")
+#
+# plt.figure(3)
+# plt.errorbar(ps, np.mean(cs, axis=1), yerr=get_sem(cs), fmt='.-')
+# plt.xlabel("nonconformity probability")
+# plt.ylabel("concentration")
+#
+# plt.figure(4)
+# plt.errorbar(ps, np.mean(xs, axis=1), yerr=get_sem(xs), fmt='.-')
+# plt.xlabel("nonconformity probability")
+# plt.ylabel("fluctuation")
+#
+# plt.figure(5)
+# plt.errorbar(ps, np.mean(us, axis=1), yerr=get_sem(us), fmt='.-')
+# plt.xlabel("nonconformity probability")
+# plt.ylabel("Binder cumulant")
+# plt.show()
