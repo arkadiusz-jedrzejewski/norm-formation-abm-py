@@ -21,19 +21,22 @@ p_start, p_end, p_num = params[0], params[1], int(params[2])
 q, f, = params[4], params[5]
 time_horizon, system_size = int(params[6]), int(params[7])
 
+time_start = 800
+
 form = '<15'
 print(f"{'loaded data:':{form}}{dir_name}",
-      f"{'sim_num:':{form}}{sim_num}",
       f"{'p_start:':{form}}{p_start}",
       f"{'p_end:':{form}}{p_end}",
       f"{'p_num:':{form}}{p_num}",
+      f"{'system_size:':{form}}{system_size}",
       f"{'q:':{form}}{q}",
       f"{'f:':{form}}{f}",
       f"{'time_horizon:':{form}}{time_horizon}",
-      f"{'system_size:':{form}}{system_size}",
+      f"{'time_start:':{form}}{time_start}",
+      f"{'time_average:':{form}}{time_horizon - time_start + 1}",
+      f"{'sim_num:':{form}}{sim_num}",
       sep="\n")
 
-t_start = 800
 cs = np.zeros((len(ps), sim_num))
 xs = np.zeros((len(ps), sim_num))
 us = np.zeros((len(ps), sim_num))
@@ -42,7 +45,7 @@ plt.figure(1)
 for i in range(len(ps)):
     for sim_number in range(sim_num):
         single_sim = np.loadtxt(dir_name + f"/{i}/sim-{sim_number}.txt")
-        single_sim = single_sim[t_start:]
+        single_sim = single_sim[time_start:]
         single_sim2 = [(2 * x - 1) ** 2 for x in single_sim]
         single_sim4 = [(2 * x - 1) ** 4 for x in single_sim]
         single_sim = [max(x, 1 - x) for x in single_sim]
