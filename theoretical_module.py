@@ -1,6 +1,6 @@
 # Theoretical module
 import numpy as np
-import matplotlib.pyplot as plt
+
 
 
 def conformity_function(x, q):
@@ -38,13 +38,3 @@ def get_fixed_points_q_voter(num, q, f, is_quenched=False):
         ps = numerator / ((1 - 2 * cs) * f + numerator)
 
     return ps, cs
-
-
-ps, cs = get_fixed_points_q_voter(num=100,
-                                  q=3,
-                                  f=0.5)
-
-# plt.figure(1)
-# plt.plot(ps, cs, '-')
-#
-# plt.show()
