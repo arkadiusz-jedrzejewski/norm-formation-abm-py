@@ -60,9 +60,9 @@ if __name__ == "__main__":
     np.savetxt(dir_name + "/probs.csv", np.column_stack((ps_index, ps)), fmt="%i, %.18f")
     np.savetxt(dir_name + "/sim_num.csv", [sim_num], fmt="%i")
     np.savetxt(dir_name + "/params.csv",
-               [[p_start, p_stop, p_num, sim_num, q, f, time_horizon, system_size]],
-               fmt="%.8f, " * 2 + "%i, %i, %.8f, %.8f, %i, %i",
-               header="p_start, p_stop, p_num, sim_num, q, f, time_horizon, system_size")
+               [[p_start, p_stop, p_num, sim_num, q, f, time_horizon, system_size, is_annealed]],
+               fmt="%.8f, " * 2 + "%i, %i, %.8f, %.8f, %i, %i, %i",
+               header="p_start, p_stop, p_num, sim_num, q, f, time_horizon, system_size, is_annealed")
 
     p_tuples = []
     seed = 1
