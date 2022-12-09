@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from theoretical_module import get_fixed_points
+from theoretical_module import get_fixed_points, get_fixed_points_q_voter
 
 
 def get_sem(data):
@@ -10,7 +10,7 @@ def get_sem(data):
     return np.std(data, axis=1, ddof=1) / np.sqrt(np.size(data, axis=1))
 
 
-dir_name = "221209-sim-5"
+dir_name = "221209-sim-8"
 
 probs = np.loadtxt(dir_name + "/probs.csv", delimiter=",")
 ps = probs[:, 1]
@@ -31,6 +31,7 @@ print(f"{'loaded data:':{form}}{dir_name}",
       f"{'p_end:':{form}}{p_end}",
       f"{'p_num:':{form}}{p_num}",
       f"{'system_size:':{form}}{system_size}",
+      f"{'is_annealed:':{form}}{is_annealed}",
       f"{'q:':{form}}{q}",
       f"{'f:':{form}}{f}",
       f"{'time_horizon:':{form}}{time_horizon}",
@@ -62,7 +63,7 @@ for i in range(len(ps)):
 # plt.ylabel("concentration")
 #
 
-ps_theo, cs_theo = get_fixed_points(num=100, q=q, f=f, is_quenched=not is_annealed)
+ps_theo, cs_theo = get_fixed_points_q_voter(num=100, q=q, f=f, is_quenched=not is_annealed)
 
 plt.figure(3)
 plt.plot(ps_theo, cs_theo, 'r')
