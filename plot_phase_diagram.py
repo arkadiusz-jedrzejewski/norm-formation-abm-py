@@ -21,6 +21,7 @@ params = np.loadtxt(dir_name + "/params.csv", delimiter=",")
 p_start, p_end, p_num = params[0], params[1], int(params[2])
 q, f, = params[4], params[5]
 time_horizon, system_size = int(params[6]), int(params[7])
+is_annealed = int(params[8])
 
 time_start = 800
 
@@ -61,7 +62,7 @@ for i in range(len(ps)):
 # plt.ylabel("concentration")
 #
 
-ps_theo, cs_theo = get_fixed_points(num=100, q=q, f=f, is_quenched=False)
+ps_theo, cs_theo = get_fixed_points(num=100, q=q, f=f, is_quenched=not is_annealed)
 
 plt.figure(3)
 plt.plot(ps_theo, cs_theo, 'r')
