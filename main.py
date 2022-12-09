@@ -26,11 +26,12 @@ def get_dir_name():
     return dir_name
 
 
-def run_single_sim(p_tuple, q, f, system_size, init_opinions, time_horizon, p_dir_name):
+def run_single_sim(p_tuple, is_annealed, q, f, system_size, init_opinions, time_horizon, p_dir_name):
     p_index, p, sim_number, seed = p_tuple
     file_name = p_dir_name + f"/{p_index}/sim-{sim_number}.txt"
+    is_annealed = 1 if is_annealed else 0
     subprocess.run(
-        f"norm_formation_abm.exe {seed} {p} {q} {f} {system_size} {init_opinions} {time_horizon} {file_name}")
+        f"norm_formation_abm.exe {seed} {is_annealed} {p} {q} {f} {system_size} {init_opinions} {time_horizon} {file_name}")
 
 
 if __name__ == "__main__":
@@ -40,15 +41,17 @@ if __name__ == "__main__":
     # parameters
     p_start = 0
     p_stop = 1
-    p_num = 20
+    p_num = 25
     ps = np.linspace(p_start, p_stop, p_num)
     ps_index = np.arange(p_num)
 
-    sim_num = 2
+    is_annealed = True
+
+    sim_num = 10
     sims = np.arange(sim_num)
 
-    q = 3
-    f = 0.5
+    q = 1.5
+    f = 0.8
     system_size = 10000
     time_horizon = 1000
 
@@ -57,9 +60,9 @@ if __name__ == "__main__":
     np.savetxt(dir_name + "/probs.csv", np.column_stack((ps_index, ps)), fmt="%i, %.18f")
     np.savetxt(dir_name + "/sim_num.csv", [sim_num], fmt="%i")
     np.savetxt(dir_name + "/params.csv",
-               [[p_start, p_stop, p_num, sim_num, q, f, time_horizon, system_size]],
-               fmt="%.8f, " * 2 + "%i, %i, %.8f, %.8f, %i, %i",
-               header="p_start, p_stop, p_num, sim_num, q, f, time_horizon, system_size")
+               [[p_start, p_stop, p_num, sim_num, q, f, time_horizon, system_size, is_annealed]],
+               fmt="%.8f, " * 2 + "%i, %i, %.8f, %.8f, %i, %i, %i",
+               header="p_start, p_stop, p_num, sim_num, q, f, time_horizon, system_size, is_annealed")
 
     p_tuples = []
     seed = 1
@@ -75,6 +78,7 @@ if __name__ == "__main__":
 
     with mp.Pool(6) as pool:
         pool.map(partial(run_single_sim,
+                         is_annealed=is_annealed,
                          q=q,
                          f=f,
                          system_size=system_size,
