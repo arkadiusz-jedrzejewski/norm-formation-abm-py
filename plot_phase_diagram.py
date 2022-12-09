@@ -10,7 +10,7 @@ def get_sem(data):
     return np.std(data, axis=1, ddof=1) / np.sqrt(np.size(data, axis=1))
 
 
-dir_name = "221208-sim-1"
+dir_name = "221209-sim-5"
 
 probs = np.loadtxt(dir_name + "/probs.csv", delimiter=",")
 ps = probs[:, 1]
@@ -61,7 +61,7 @@ for i in range(len(ps)):
 # plt.ylabel("concentration")
 #
 
-ps_theo, cs_theo = get_fixed_points(num=100, q=q, f=f, is_quenched=True)
+ps_theo, cs_theo = get_fixed_points(num=100, q=q, f=f, is_quenched=False)
 
 plt.figure(3)
 plt.plot(ps_theo, cs_theo, 'r')
