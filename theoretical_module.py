@@ -30,8 +30,8 @@ def get_fixed_points_q_voter(num, q, f, is_quenched=False):
     cs = np.linspace(0, 1, num=num)
     if is_quenched:
         # quenched model
-        numerator = (cs * (1 - cs) ** q - (1 - cs) * cs ** q)
-        ps = 2 * numerator / ((1 - cs) ** q + cs ** q)
+        numerator = cs * (1 - cs) ** q - (1 - cs) * cs ** q
+        ps = 2 * numerator / ((1 - cs) ** q - cs ** q)
     else:
         # annealed model
         numerator = cs * (1 - cs) ** q - (1 - cs) * cs ** q
