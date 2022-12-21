@@ -6,7 +6,6 @@ from scipy.special import lambertw
 import scipy.integrate as integrate
 from scipy.optimize import minimize, Bounds, fsolve
 
-
 import matplotlib.pyplot as plt
 
 
@@ -161,10 +160,31 @@ def bisection(f, x1, x2, switch=False, tol=1e-9) -> float:
     return (x1 + x2) / 2
 
 
+def get_roots(f, a, b, dx):
+    """
+    get_roots finds roots of f(x) = 0 in interval (a, b)
+
+    :param f:
+    :param a:
+    :param b:
+    :param dx:
+    :return:
+    """
+    roots = []
+    while True:
+        x1, x2 = rootsearch(f, a, b, dx)
+        if x1 is None:
+            break
+        else:
+            a = x2
+            roots.append(bisection(f, x1, x2))
+    return roots
+
+
 def f(x): return x ** 3 - 10 * x ** 2 + 5
 
 
-print(bisection(f, 0, 1))
+print(get_roots(f, -10, 10, 0.01))
 # ps, cs = get_phase_diagram(p_start=0,
 #                            p_stop=1,
 #                            p_num=110,
