@@ -1,8 +1,12 @@
 # Theoretical module
+import math
+
 import numpy as np
 from scipy.special import lambertw
 import scipy.integrate as integrate
 from scipy.optimize import minimize, Bounds, fsolve
+
+
 import matplotlib.pyplot as plt
 
 
@@ -96,6 +100,9 @@ def rootsearch(f, a, b, dx) -> tuple:
     that contains the smallest root of f(x).
     It returns (None, None) if no roots were detected.
 
+    Numerical methods in engineering with python 3
+    Chapter 4.2
+
     :param f:   function
     :param a:   lower search bound
     :param b:   upper search bound
@@ -116,6 +123,48 @@ def rootsearch(f, a, b, dx) -> tuple:
         return x1, x2
 
 
+def bisection(f, x1, x2, switch=False, tol=1e-9) -> float:
+    """
+    Bisection finds a root of f(x) = 0 by bisection.
+    The root must be inside interval (x1, x2).
+    Setting switch = True returns root = None if f(x) increases with bisection
+
+    :param f:       function
+    :param x1:      lower bound
+    :param x2:      upper bound
+    :param switch:  switch = 1 returns root = None if f(x) increases with bisection
+    :param tol:     error tolerance
+    :return:        estimated root of f(x) = 0
+    """
+    f1 = f(x1)
+    if f1 == 0:
+        return x1
+    f2 = f(x2)
+    if f2 == 0:
+        return x2
+    if f1 * f2 > 0:
+        return None
+    n = int(math.ceil(math.log(abs(x2 - x1) / tol) / math.log(2)))
+
+    for i in range(n):
+        x3 = (x1 + x2) / 2
+        f3 = f(x3)
+        if switch and abs(f3) > abs(f1) and abs(f3) > abs(f2):
+            return None
+        if f3 == 0:
+            return x3
+        if f2 * f3 < 0:
+            x1, f1 = x3, f3
+        else:
+            x2, f2 = x3, f3
+
+    return (x1 + x2) / 2
+
+
+def f(x): return x ** 3 - 10 * x ** 2 + 5
+
+
+print(bisection(f, 0, 1))
 # ps, cs = get_phase_diagram(p_start=0,
 #                            p_stop=1,
 #                            p_num=110,
