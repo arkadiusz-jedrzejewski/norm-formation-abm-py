@@ -69,26 +69,61 @@ def fun(x, c, f, q):
     return numerator / denominator
 
 
-def get_phase_diagram(p_start, p_stop, p_num, q, tol):
+def get_phase_diagram(p_start, p_stop, p_num, q, f, tol):
     ps = np.linspace(p_start, p_stop, p_num)
     cs = np.zeros(ps.shape)
     for i, p in enumerate(ps):
-        c = fsolve(lambda x: x - integrate.quad(fun, 0, p, (x, 0.5, q))[0] / p,
+        c = fsolve(lambda x: x - integrate.quad(fun, 0, p, (x, f, q))[0] / p,
                    cs[i - 1] if i > 0 else 1)
         cs[i] = c
         # error
-        if np.abs(c - integrate.quad(fun, 0, p, (c, 0.5, q))[0] / p) > tol:
+        if np.abs(c - integrate.quad(fun, 0, p, (c, f, q))[0] / p) > tol:
             cs[i] = np.NAN
+
+        while np.isnan(cs[i]):
+            c = fsolve(lambda x: x - integrate.quad(fun, 0, p, (x, f, q))[0] / p,
+                       np.random.rand())
+            cs[i] = c
+            if np.abs(c - integrate.quad(fun, 0, p, (c, f, q))[0] / p) > tol:
+                cs[i] = np.NAN
 
     return ps, cs
 
 
-ps, cs = get_phase_diagram(p_start=0,
-                           p_stop=0.4,
-                           p_num=20,
-                           q=8,
-                           tol=1e-6)
+def rootsearch(f, a, b, dx) -> tuple:
+    """
+    For function f(x), rootsearch searches interval (a, b) in increments dx, and it finds interval (x1, x2)
+    that contains the smallest root of f(x).
+    It returns (None, None) if no roots were detected.
 
-print(ps,cs,sep='\n')
-plt.plot(ps, cs, '.-')
-plt.show()
+    :param f:   function
+    :param a:   lower search bound
+    :param b:   upper search bound
+    :param dx:  increment
+    :return:    (x1, x2): an interval that contains the smallest root of f(x)
+    """
+    x1, f1 = a, f(a)
+    x2 = a + dx
+    f2 = f(x2)
+    while f1 * f2 > 0:
+        if x1 >= b:
+            return None, None
+        else:
+            x1, f1 = x2, f2
+            x2 = x1 + dx
+            f2 = f(x2)
+    else:
+        return x1, x2
+
+
+# ps, cs = get_phase_diagram(p_start=0,
+#                            p_stop=1,
+#                            p_num=110,
+#                            q=5,
+#                            f=0.45,
+#                            tol=1e-6)
+#
+# print(ps, cs, sep='\n')
+# plt.plot(ps, cs, '.-')
+# plt.ylim(0, 1)
+# plt.show()
