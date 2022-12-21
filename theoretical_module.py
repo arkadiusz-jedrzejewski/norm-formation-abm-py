@@ -160,15 +160,15 @@ def bisection(f, x1, x2, switch=False, tol=1e-9) -> float:
     return (x1 + x2) / 2
 
 
-def get_roots(f, a, b, dx):
+def get_roots(f, a, b, dx) -> list:
     """
     get_roots finds roots of f(x) = 0 in interval (a, b)
 
-    :param f:
-    :param a:
-    :param b:
-    :param dx:
-    :return:
+    :param f:   function
+    :param a:   lower bound
+    :param b:   upper bound
+    :param dx:  increment
+    :return:    list of found roots of f(x) = 0
     """
     roots = []
     while True:
@@ -177,14 +177,16 @@ def get_roots(f, a, b, dx):
             break
         else:
             a = x2
-            roots.append(bisection(f, x1, x2))
+            root = bisection(f, x1, x2, True)
+            if root is not None:
+                roots.append(root)
     return roots
 
 
-def f(x): return x ** 3 - 10 * x ** 2 + 5
+def f(x): return x - math.tan(x)
 
 
-print(get_roots(f, -10, 10, 0.01))
+print(get_roots(f, 0, 20, 0.01))
 # ps, cs = get_phase_diagram(p_start=0,
 #                            p_stop=1,
 #                            p_num=110,
