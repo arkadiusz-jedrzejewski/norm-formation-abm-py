@@ -26,12 +26,12 @@ def get_dir_name():
     return dir_name
 
 
-def run_single_sim(p_tuple, is_annealed, q, f, system_size, init_opinions, time_horizon, p_dir_name):
+def run_single_sim(p_tuple, is_annealed, q, f, system_size, init_opinions, time_horizon, p_dir_name, eps):
     p_index, p, sim_number, seed = p_tuple
     file_name = p_dir_name + f"/{p_index}/sim-{sim_number}.txt"
     is_annealed = 1 if is_annealed else 0
     subprocess.run(
-        f"norm_formation_abm.exe {seed} {is_annealed} {p} {q} {f} {system_size} {init_opinions} {time_horizon} {file_name}")
+        f"norm_formation_abm.exe {seed} {is_annealed} {q} {f} {system_size} {init_opinions} {time_horizon} {file_name} {p} {eps}")
 
 
 if __name__ == "__main__":
@@ -45,13 +45,15 @@ if __name__ == "__main__":
     ps = np.linspace(p_start, p_stop, p_num)
     ps_index = np.arange(p_num)
 
+    eps = 0.5
+
     is_annealed = True
 
-    sim_num = 10
+    sim_num = 2
     sims = np.arange(sim_num)
 
-    q = 1.5
-    f = 0.8
+    q = 3
+    f = 0.5
     system_size = 10000
     time_horizon = 1000
 
@@ -82,9 +84,10 @@ if __name__ == "__main__":
                          q=q,
                          f=f,
                          system_size=system_size,
-                         init_opinions=1,
+                         init_opinions=-1,
                          time_horizon=time_horizon,
-                         p_dir_name=dir_name
+                         p_dir_name=dir_name,
+                         eps=eps
                          ),
                  p_tuples)
 
