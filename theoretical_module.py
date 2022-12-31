@@ -13,81 +13,81 @@ def conformity_function(x, q):
     return x ** q
 
 
-def nonconformity_function(x, f):
-    return f
+def nonconformity_function(x, x0, k, m):
+    return 2.0 * m / (1 + np.exp(k * (x - x0)))
 
 
-def get_fixed_points(num, q, f, is_quenched=False):
-    cs = np.linspace(0, 1, num=num)
-    if is_quenched:
-        # quenched model
-        numerator = cs * (conformity_function(1 - cs, q) + conformity_function(cs, q)) - conformity_function(cs, q)
-        denominator = nonconformity_function(cs, f) * (
-                conformity_function(1 - cs, q) + conformity_function(cs, q)) - conformity_function(cs, q)
-        ps = numerator / denominator
-    else:
-        numerator = cs * conformity_function(1 - cs, q) - (1 - cs) * conformity_function(cs, q)
-        ps = numerator / (nonconformity_function(cs, f) - cs + numerator)
-
-    return ps, cs
-
-
-def get_fixed_points_uniform(num, q, f, is_quenched=False):
-    cs = np.linspace(0.001, 0.999, num=num)
-    a1 = cs - (conformity_function(cs, q) - nonconformity_function(cs, f)) / (
-            conformity_function(1 - cs, q) + conformity_function(cs, q) - 1)
-    a2 = (conformity_function(cs, q) - nonconformity_function(cs, f) * (
-            conformity_function(1 - cs, q) + conformity_function(cs, q))) / (
-                 conformity_function(1 - cs, q) + conformity_function(cs, q) - 1) ** 2
-    a3 = conformity_function(cs, q) + conformity_function(1 - cs, q)
-    if is_quenched:
-        # quenched model
-        ps = ((1 - a3) * a2 * lambertw(a1 * a3 * np.exp(a1 * a3 / a2 / (a3 - 1)) / a2 / (a3 - 1)) + a1 * a3) / (
-                a1 * (a3 - 1))
-    else:
-        numerator = cs * conformity_function(1 - cs, q) - (1 - cs) * conformity_function(cs, q)
-        ps = numerator / (nonconformity_function(cs, f) - cs + numerator)
-
-    return ps, cs
+# def get_fixed_points(num, q, f, is_quenched=False):
+#     cs = np.linspace(0, 1, num=num)
+#     if is_quenched:
+#         # quenched model
+#         numerator = cs * (conformity_function(1 - cs, q) + conformity_function(cs, q)) - conformity_function(cs, q)
+#         denominator = nonconformity_function(cs, f) * (
+#                 conformity_function(1 - cs, q) + conformity_function(cs, q)) - conformity_function(cs, q)
+#         ps = numerator / denominator
+#     else:
+#         numerator = cs * conformity_function(1 - cs, q) - (1 - cs) * conformity_function(cs, q)
+#         ps = numerator / (nonconformity_function(cs, f) - cs + numerator)
+#
+#     return ps, cs
 
 
-def get_fixed_points_q_voter(num, q, f, is_quenched=False):
-    cs = np.linspace(0, 1, num=num)
-    if is_quenched:
-        # quenched model
-        numerator = cs * (1 - cs) ** q - (1 - cs) * cs ** q
-        ps = 2 * numerator / ((1 - cs) ** q - cs ** q)
-    else:
-        # annealed model
-        numerator = cs * (1 - cs) ** q - (1 - cs) * cs ** q
-        ps = numerator / ((1 - 2 * cs) * f + numerator)
+# def get_fixed_points_uniform(num, q, f, is_quenched=False):
+#     cs = np.linspace(0.001, 0.999, num=num)
+#     a1 = cs - (conformity_function(cs, q) - nonconformity_function(cs, f)) / (
+#             conformity_function(1 - cs, q) + conformity_function(cs, q) - 1)
+#     a2 = (conformity_function(cs, q) - nonconformity_function(cs, f) * (
+#             conformity_function(1 - cs, q) + conformity_function(cs, q))) / (
+#                  conformity_function(1 - cs, q) + conformity_function(cs, q) - 1) ** 2
+#     a3 = conformity_function(cs, q) + conformity_function(1 - cs, q)
+#     if is_quenched:
+#         # quenched model
+#         ps = ((1 - a3) * a2 * lambertw(a1 * a3 * np.exp(a1 * a3 / a2 / (a3 - 1)) / a2 / (a3 - 1)) + a1 * a3) / (
+#                 a1 * (a3 - 1))
+#     else:
+#         numerator = cs * conformity_function(1 - cs, q) - (1 - cs) * conformity_function(cs, q)
+#         ps = numerator / (nonconformity_function(cs, f) - cs + numerator)
+#
+#     return ps, cs
 
-    return ps, cs
+
+# def get_fixed_points_q_voter(num, q, f, is_quenched=False):
+#     cs = np.linspace(0, 1, num=num)
+#     if is_quenched:
+#         # quenched model
+#         numerator = cs * (1 - cs) ** q - (1 - cs) * cs ** q
+#         ps = 2 * numerator / ((1 - cs) ** q - cs ** q)
+#     else:
+#         # annealed model
+#         numerator = cs * (1 - cs) ** q - (1 - cs) * cs ** q
+#         ps = numerator / ((1 - 2 * cs) * f + numerator)
+#
+#     return ps, cs
 
 
-def fun(x, c, f, q):
+def fun(x, c, q, x0, k, m):
     # nonconformity_function -> probability of engaging (opinion changes to 1)
-    numerator = x * nonconformity_function(c, f) + (1 - x) * conformity_function(c, q)
+    numerator = x * nonconformity_function(c, x0, k, m) + (1 - x) * conformity_function(c, q)
     denominator = x + (1 - x) * (conformity_function(1 - c, q) + conformity_function(c, q))
     return numerator / denominator
 
 
-def get_phase_diagram(p_start, p_stop, p_num, q, f, tol):
+def get_phase_diagram(p_start, p_stop, p_num, q, x0, k, m, tol):
     ps = np.linspace(p_start, p_stop, p_num)
     cs = np.zeros(ps.shape)
     for i, p in enumerate(ps):
-        c = fsolve(lambda x: x - integrate.quad(fun, 0, p, (x, f, q))[0] / p,
+        c = fsolve(lambda x: x - integrate.quad(fun, 0, p, (x, q, x0, k, m))[0] / p,
                    cs[i - 1] if i > 0 else 1)
         cs[i] = c
         # error
-        if np.abs(c - integrate.quad(fun, 0, p, (c, f, q))[0] / p) > tol:
+        if np.abs(c - integrate.quad(fun, 0, p, (c, q, x0, k, m))[0] / p) > tol:
             cs[i] = np.NAN
 
         while np.isnan(cs[i]):
-            c = fsolve(lambda x: x - integrate.quad(fun, 0, p, (x, f, q))[0] / p,
+            c = fsolve(lambda x: x - integrate.quad(fun, 0, p, (x, q, x0, k, m))[0] / p,
                        np.random.rand())
             cs[i] = c
-            if np.abs(c - integrate.quad(fun, 0, p, (c, f, q))[0] / p) > tol:
+            if np.abs(c - integrate.quad(fun, 0, p, (c, q, x0, k, m))[0] / p) > tol:
                 cs[i] = np.NAN
 
     return ps, cs
@@ -183,10 +183,19 @@ def get_roots(f, a, b, dx) -> list:
     return roots
 
 
-def f(x): return x - math.tan(x)
-
-
-print(get_roots(f, 0, 20, 0.01))
+q = 1.5
+x0 = 0.5
+k = 0
+m = 0.6
+ps = np.linspace(0.001, 0.999, 200)
+roots = []
+for p in ps:
+    f1 = lambda x: x - integrate.quad(fun, 0, p, (x, q, x0, k, m))[0] / p
+    root = get_roots(f1, 0, 1, 0.001)
+    #print(f"p:\t{p}\t{root}")
+    plt.plot(p * np.ones(len(root)), root, '.c')
+    roots = roots + root
+plt.show()
 # ps, cs = get_phase_diagram(p_start=0,
 #                            p_stop=1,
 #                            p_num=110,
