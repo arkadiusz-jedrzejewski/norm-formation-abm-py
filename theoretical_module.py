@@ -19,6 +19,25 @@ class Logistic:
         return 2.0 * self.m / (1 + np.exp(self.k * (conc - self.x0)))
 
 
+class SymmetricPower:
+    def __init__(self, q):
+        self.q = q
+
+    def get(self, conc):
+        if hasattr(conc, "__len__"):
+            result = []
+            for c in conc:
+                if c < 0.5:
+                    result.append(np.power(2 * c, self.q) / 2)
+                else:
+                    result.append(1 - np.power(2 * (1 - c), self.q) / 2)
+            return result
+        if conc < 0.5:
+            return np.power(2 * conc, self.q) / 2
+        else:
+            return 1 - np.power(2 * (1 - conc), self.q) / 2
+
+
 def conformity_function(x, q):
     return x ** q
 
@@ -195,7 +214,7 @@ def get_roots(f, a, b, dx) -> list:
     return roots
 
 
-nonf = Logistic(0.5, -2, 0.5)
+nonf = SymmetricPower(1.5) # Logistic(0.5, -2, 0.5)
 conc = np.linspace(0, 1, 100)
 print(nonf.get(conc))
 plt.plot(conc, nonf.get(conc))
