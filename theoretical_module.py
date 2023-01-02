@@ -38,6 +38,14 @@ class SymmetricPower:
             return 1 - np.power(2 * (1 - conc), self.q) / 2
 
 
+class Power:
+    def __init__(self, q):
+        self.q = q
+
+    def get(self, conc):
+        return conc ** self.q
+
+
 def get_fixed_points(num, conf_fun, nonconf_fun, is_quenched=False):
     """
     get_fixed_points returns the fixed points in the case of Bernoulli distribution
@@ -213,14 +221,20 @@ def get_roots(f, a, b, dx) -> list:
     return roots
 
 
-conf_fun = SymmetricPower(1.5)
-nonconf_fun = Logistic(0.5, 0, 0.5)
+q = 1.5
+x0 = 0.5
+k = 0
+m = 0.5
+is_quenched = True
 
-ps, cs = get_fixed_points(100, conf_fun, nonconf_fun, is_quenched=True)
+conf_fun = SymmetricPower(q=q)
+nonconf_fun = Logistic(x0=x0, k=k, m=m)
+
+ps, cs = get_fixed_points(100, conf_fun, nonconf_fun, is_quenched=is_quenched)
 plt.plot(ps, cs)
 plt.xlim([0, 1])
 plt.ylim([0, 1])
-plt.xlabel("nonconformity probability")
+plt.xlabel("nonconformity")
 plt.ylabel("concentration")
 plt.show()
 # plt.plot(conc, nonf.get(conc))
