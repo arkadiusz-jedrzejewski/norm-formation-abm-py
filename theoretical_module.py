@@ -38,27 +38,26 @@ class SymmetricPower:
             return 1 - np.power(2 * (1 - conc), self.q) / 2
 
 
-def conformity_function(x, q):
-    return x ** q
-
-
-def nonconformity_function(x, x0, k, m):
-    return 2.0 * m / (1 + np.exp(k * (x - x0)))
-
-
-def get_fixed_points(num, q, f, is_quenched=False):
-    """"""
+def get_fixed_points(num, conf_fun, nonconf_fun, is_quenched=False):
+    """
+    get_fixed_points returns the fixed points in the case of Bernoulli distribution
+    :param num: number of points
+    :param conf_fun: conformity function
+    :param nonconf_fun: nonconformity function
+    :param is_quenched:
+    :return:
+    """
     cs = np.linspace(0, 1, num=num)
     if is_quenched:
         # quenched model
-        numerator = cs * (conformity_function(1 - cs, q) + conformity_function(cs, q)) - conformity_function(cs, q)
-        denominator = nonconformity_function(cs, f) * (
-                conformity_function(1 - cs, q) + conformity_function(cs, q)) - conformity_function(cs, q)
+        numerator = cs * (conf_fun.get(1 - cs) + conf_fun.get(cs)) - conf_fun.get(cs)
+        denominator = nonconf_fun.get(cs) * (
+                conf_fun.get(1 - cs) + conf_fun.get(cs)) - conf_fun.get(cs)
         ps = numerator / denominator
     else:
         # annealed model
-        numerator = cs * conformity_function(1 - cs, q) - (1 - cs) * conformity_function(cs, q)
-        ps = numerator / (nonconformity_function(cs, f) - cs + numerator)
+        numerator = cs * conf_fun.get(1 - cs) - (1 - cs) * conf_fun.get(cs)
+        ps = numerator / (nonconf_fun.get(cs) - cs + numerator)
 
     return ps, cs
 
@@ -96,32 +95,32 @@ def get_fixed_points(num, q, f, is_quenched=False):
 #     return ps, cs
 
 
-def fun(x, c, q, x0, k, m):
-    # nonconformity_function -> probability of engaging (opinion changes to 1)
-    numerator = x * nonconformity_function(c, x0, k, m) + (1 - x) * conformity_function(c, q)
-    denominator = x + (1 - x) * (conformity_function(1 - c, q) + conformity_function(c, q))
-    return numerator / denominator
+# def fun(x, c, q, x0, k, m):
+#     # nonconformity_function -> probability of engaging (opinion changes to 1)
+#     numerator = x * nonconformity_function(c, x0, k, m) + (1 - x) * conformity_function(c, q)
+#     denominator = x + (1 - x) * (conformity_function(1 - c, q) + conformity_function(c, q))
+#     return numerator / denominator
 
 
-def get_phase_diagram(p_start, p_stop, p_num, q, x0, k, m, tol):
-    ps = np.linspace(p_start, p_stop, p_num)
-    cs = np.zeros(ps.shape)
-    for i, p in enumerate(ps):
-        c = fsolve(lambda x: x - integrate.quad(fun, 0, p, (x, q, x0, k, m))[0] / p,
-                   cs[i - 1] if i > 0 else 1)
-        cs[i] = c
-        # error
-        if np.abs(c - integrate.quad(fun, 0, p, (c, q, x0, k, m))[0] / p) > tol:
-            cs[i] = np.NAN
-
-        while np.isnan(cs[i]):
-            c = fsolve(lambda x: x - integrate.quad(fun, 0, p, (x, q, x0, k, m))[0] / p,
-                       np.random.rand())
-            cs[i] = c
-            if np.abs(c - integrate.quad(fun, 0, p, (c, q, x0, k, m))[0] / p) > tol:
-                cs[i] = np.NAN
-
-    return ps, cs
+# def get_phase_diagram(p_start, p_stop, p_num, q, x0, k, m, tol):
+#     ps = np.linspace(p_start, p_stop, p_num)
+#     cs = np.zeros(ps.shape)
+#     for i, p in enumerate(ps):
+#         c = fsolve(lambda x: x - integrate.quad(fun, 0, p, (x, q, x0, k, m))[0] / p,
+#                    cs[i - 1] if i > 0 else 1)
+#         cs[i] = c
+#         # error
+#         if np.abs(c - integrate.quad(fun, 0, p, (c, q, x0, k, m))[0] / p) > tol:
+#             cs[i] = np.NAN
+#
+#         while np.isnan(cs[i]):
+#             c = fsolve(lambda x: x - integrate.quad(fun, 0, p, (x, q, x0, k, m))[0] / p,
+#                        np.random.rand())
+#             cs[i] = c
+#             if np.abs(c - integrate.quad(fun, 0, p, (c, q, x0, k, m))[0] / p) > tol:
+#                 cs[i] = np.NAN
+#
+#     return ps, cs
 
 
 def rootsearch(f, a, b, dx) -> tuple:
