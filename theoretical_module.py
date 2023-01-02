@@ -9,6 +9,16 @@ from scipy.optimize import minimize, Bounds, fsolve
 import matplotlib.pyplot as plt
 
 
+class Logistic:
+    def __init__(self, x0, k, m):
+        self.x0 = x0
+        self.k = k
+        self.m = m
+
+    def get(self, conc):
+        return 2.0 * self.m / (1 + np.exp(self.k * (conc - self.x0)))
+
+
 def conformity_function(x, q):
     return x ** q
 
@@ -17,19 +27,21 @@ def nonconformity_function(x, x0, k, m):
     return 2.0 * m / (1 + np.exp(k * (x - x0)))
 
 
-# def get_fixed_points(num, q, f, is_quenched=False):
-#     cs = np.linspace(0, 1, num=num)
-#     if is_quenched:
-#         # quenched model
-#         numerator = cs * (conformity_function(1 - cs, q) + conformity_function(cs, q)) - conformity_function(cs, q)
-#         denominator = nonconformity_function(cs, f) * (
-#                 conformity_function(1 - cs, q) + conformity_function(cs, q)) - conformity_function(cs, q)
-#         ps = numerator / denominator
-#     else:
-#         numerator = cs * conformity_function(1 - cs, q) - (1 - cs) * conformity_function(cs, q)
-#         ps = numerator / (nonconformity_function(cs, f) - cs + numerator)
-#
-#     return ps, cs
+def get_fixed_points(num, q, f, is_quenched=False):
+    """"""
+    cs = np.linspace(0, 1, num=num)
+    if is_quenched:
+        # quenched model
+        numerator = cs * (conformity_function(1 - cs, q) + conformity_function(cs, q)) - conformity_function(cs, q)
+        denominator = nonconformity_function(cs, f) * (
+                conformity_function(1 - cs, q) + conformity_function(cs, q)) - conformity_function(cs, q)
+        ps = numerator / denominator
+    else:
+        # annealed model
+        numerator = cs * conformity_function(1 - cs, q) - (1 - cs) * conformity_function(cs, q)
+        ps = numerator / (nonconformity_function(cs, f) - cs + numerator)
+
+    return ps, cs
 
 
 # def get_fixed_points_uniform(num, q, f, is_quenched=False):
@@ -183,19 +195,25 @@ def get_roots(f, a, b, dx) -> list:
     return roots
 
 
-q = 1.5
-x0 = 0.5
-k = 0
-m = 0.6
-ps = np.linspace(0.001, 0.999, 200)
-roots = []
-for p in ps:
-    f1 = lambda x: x - integrate.quad(fun, 0, p, (x, q, x0, k, m))[0] / p
-    root = get_roots(f1, 0, 1, 0.001)
-    #print(f"p:\t{p}\t{root}")
-    plt.plot(p * np.ones(len(root)), root, '.c')
-    roots = roots + root
+nonf = Logistic(0.5, -2, 0.5)
+conc = np.linspace(0, 1, 100)
+print(nonf.get(conc))
+plt.plot(conc, nonf.get(conc))
+plt.ylim((0,1))
 plt.show()
+# q = 1.5
+# x0 = 0.5
+# k = 0
+# m = 0.6
+# ps = np.linspace(0.001, 0.999, 200)
+# roots = []
+# for p in ps:
+#     f1 = lambda x: x - integrate.quad(fun, 0, p, (x, q, x0, k, m))[0] / p
+#     root = get_roots(f1, 0, 1, 0.001)
+#     #print(f"p:\t{p}\t{root}")
+#     plt.plot(p * np.ones(len(root)), root, '.c')
+#     roots = roots + root
+# plt.show()
 # ps, cs = get_phase_diagram(p_start=0,
 #                            p_stop=1,
 #                            p_num=110,
