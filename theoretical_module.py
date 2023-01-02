@@ -18,6 +18,9 @@ class Logistic:
     def get(self, conc):
         return 2.0 * self.m / (1 + np.exp(self.k * (conc - self.x0)))
 
+    def __str__(self):
+        return f"Logistic(x0={self.x0}, k={self.k}, m={self.m})"
+
 
 class SymmetricPower:
     def __init__(self, q):
@@ -37,6 +40,9 @@ class SymmetricPower:
         else:
             return 1 - np.power(2 * (1 - conc), self.q) / 2
 
+    def __str__(self):
+        return f"SymmetricPower(q={self.q})"
+
 
 class Power:
     def __init__(self, q):
@@ -44,6 +50,9 @@ class Power:
 
     def get(self, conc):
         return conc ** self.q
+
+    def __str__(self):
+        return f"Power(q={self.q})"
 
 
 def get_fixed_points(num, conf_fun, nonconf_fun, is_quenched=False):
@@ -228,7 +237,10 @@ m = 0.5
 is_quenched = True
 
 conf_fun = SymmetricPower(q=q)
+print(conf_fun)
+
 nonconf_fun = Logistic(x0=x0, k=k, m=m)
+print(nonconf_fun)
 
 ps, cs = get_fixed_points(100, conf_fun, nonconf_fun, is_quenched=is_quenched)
 plt.plot(ps, cs)
