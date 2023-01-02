@@ -31,7 +31,7 @@ class SymmetricPower:
                     result.append(np.power(2 * c, self.q) / 2)
                 else:
                     result.append(1 - np.power(2 * (1 - c), self.q) / 2)
-            return result
+            return np.array(result)
         if conc < 0.5:
             return np.power(2 * conc, self.q) / 2
         else:
@@ -213,12 +213,19 @@ def get_roots(f, a, b, dx) -> list:
     return roots
 
 
-nonf = SymmetricPower(1.5) # Logistic(0.5, -2, 0.5)
-conc = np.linspace(0, 1, 100)
-print(nonf.get(conc))
-plt.plot(conc, nonf.get(conc))
-plt.ylim((0, 1))
+conf_fun = SymmetricPower(1.5)
+nonconf_fun = Logistic(0.5, 0, 0.5)
+
+ps, cs = get_fixed_points(100, conf_fun, nonconf_fun, is_quenched=True)
+plt.plot(ps, cs)
+plt.xlim([0, 1])
+plt.ylim([0, 1])
+plt.xlabel("nonconformity probability")
+plt.ylabel("concentration")
 plt.show()
+# plt.plot(conc, nonf.get(conc))
+# plt.ylim((0, 1))
+# plt.show()
 # q = 1.5
 # x0 = 0.5
 # k = 0
