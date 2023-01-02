@@ -199,7 +199,7 @@ nonf = Logistic(0.5, -2, 0.5)
 conc = np.linspace(0, 1, 100)
 print(nonf.get(conc))
 plt.plot(conc, nonf.get(conc))
-plt.ylim((0,1))
+plt.ylim((0, 1))
 plt.show()
 # q = 1.5
 # x0 = 0.5
