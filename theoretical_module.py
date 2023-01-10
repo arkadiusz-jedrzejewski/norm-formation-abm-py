@@ -28,6 +28,7 @@ class SymmetricPower:
 
     def get(self, conc):
         if hasattr(conc, "__len__"):
+            print("table")
             result = []
             for c in conc:
                 if c < 0.5:
@@ -35,10 +36,12 @@ class SymmetricPower:
                 else:
                     result.append(1 - np.power(2 * (1 - c), self.q) / 2)
             return np.array(result)
-        if conc < 0.5:
-            return np.power(2 * conc, self.q) / 2
+        if 0.5 > conc >= 0:
+            return (2 * conc) ** self.q / 2
+        elif 0.5 <= conc <= 1:
+            return 1 - (2 * (1 - conc)) ** self.q / 2
         else:
-            return 1 - np.power(2 * (1 - conc), self.q) / 2
+            return 0
 
     def __str__(self):
         return f"SymmetricPower(q={self.q})"
@@ -60,7 +63,7 @@ def get_fixed_points(num, conf_fun, nonconf_fun, is_quenched=False):
     get_fixed_points returns the fixed points in the case of Bernoulli distribution
     :param num: number of points
     :param conf_fun: conformity function
-    :param nonconf_fun: nonconformity function
+    :param nonconf_fun: nonconformity function -> probability of engaging (opinion changes to 1)
     :param is_quenched:
     :return:
     """
@@ -73,6 +76,8 @@ def get_fixed_points(num, conf_fun, nonconf_fun, is_quenched=False):
         ps = numerator / denominator
     else:
         # annealed model
+        # (for other than Bernoulli distributions this results still holds
+        # ps is the expected value of the distribution)
         numerator = cs * conf_fun.get(1 - cs) - (1 - cs) * conf_fun.get(cs)
         ps = numerator / (nonconf_fun.get(cs) - cs + numerator)
 
@@ -112,32 +117,39 @@ def get_fixed_points(num, conf_fun, nonconf_fun, is_quenched=False):
 #     return ps, cs
 
 
-# def fun(x, c, q, x0, k, m):
-#     # nonconformity_function -> probability of engaging (opinion changes to 1)
-#     numerator = x * nonconformity_function(c, x0, k, m) + (1 - x) * conformity_function(c, q)
-#     denominator = x + (1 - x) * (conformity_function(1 - c, q) + conformity_function(c, q))
-#     return numerator / denominator
+def c_p(p, c, conf_fun, nonconf_fun):
+    """
+
+    :param p:
+    :param c:
+    :param conf_fun: conformity function
+    :param nonconf_fun: nonconformity function -> probability of engaging (opinion changes to 1)
+    :return:
+    """
+    numerator = p * nonconf_fun.get(c) + (1 - p) * conf_fun.get(c)
+    denominator = p + (1 - p) * (conf_fun.get(1 - c) + conf_fun.get(c))
+    return numerator / denominator
 
 
-# def get_phase_diagram(p_start, p_stop, p_num, q, x0, k, m, tol):
-#     ps = np.linspace(p_start, p_stop, p_num)
-#     cs = np.zeros(ps.shape)
-#     for i, p in enumerate(ps):
-#         c = fsolve(lambda x: x - integrate.quad(fun, 0, p, (x, q, x0, k, m))[0] / p,
-#                    cs[i - 1] if i > 0 else 1)
-#         cs[i] = c
-#         # error
-#         if np.abs(c - integrate.quad(fun, 0, p, (c, q, x0, k, m))[0] / p) > tol:
-#             cs[i] = np.NAN
-#
-#         while np.isnan(cs[i]):
-#             c = fsolve(lambda x: x - integrate.quad(fun, 0, p, (x, q, x0, k, m))[0] / p,
-#                        np.random.rand())
-#             cs[i] = c
-#             if np.abs(c - integrate.quad(fun, 0, p, (c, q, x0, k, m))[0] / p) > tol:
-#                 cs[i] = np.NAN
-#
-#     return ps, cs
+def get_phase_diagram(p_start, p_stop, p_num, conf_fun, nonconf_fun, tol):
+    ps = np.linspace(p_start, p_stop, p_num)
+    cs = np.zeros(ps.shape)
+    for i, p in enumerate(ps):
+        c = fsolve(lambda x: x - integrate.quad(c_p, 0, p, (x, conf_fun, nonconf_fun))[0] / p,
+                   cs[i - 1] if i > 0 else 1)
+        cs[i] = c
+        # error
+        if np.abs(c - integrate.quad(c_p, 0, p, (c, conf_fun, nonconf_fun))[0] / p) > tol:
+            cs[i] = np.NAN
+
+        while np.isnan(cs[i]):
+            c = fsolve(lambda x: x - integrate.quad(c_p, 0, p, (x, conf_fun, nonconf_fun))[0] / p,
+                       np.random.rand())
+            cs[i] = c
+            if np.abs(c - integrate.quad(c_p, 0, p, (c, conf_fun, nonconf_fun))[0] / p) > tol:
+                cs[i] = np.NAN
+
+    return ps, cs
 
 
 def rootsearch(f, a, b, dx) -> tuple:
@@ -230,23 +242,49 @@ def get_roots(f, a, b, dx) -> list:
     return roots
 
 
-
 # plt.plot(conc, nonf.get(conc))
 # plt.ylim((0, 1))
 # plt.show()
-# q = 1.5
+# q = 2
 # x0 = 0.5
-# k = 0
+# k = 15
 # m = 0.6
-# ps = np.linspace(0.001, 0.999, 200)
+# ps = np.linspace(0.001, 1.999, 100)
+#
+# conf_fun = Power(q=q)
+# print(conf_fun)
+#
+# nonconf_fun = Logistic(x0=x0, k=k, m=m)
+# print(nonconf_fun)
+#
+# c, a = np.mgrid[0:1:0.001, 0:1:0.001]
+# z = (conf_fun.get(c) - nonconf_fun.get(c)) / (conf_fun.get(1 - c) + conf_fun.get(c) - 1) - c + (
+#             conf_fun.get(c) - nonconf_fun.get(c) * (conf_fun.get(1 - c) + conf_fun.get(c))) / (
+#                 a * (conf_fun.get(1 - c) + conf_fun.get(c) - 1) ** 2) * np.log(
+#     1 - a + a / (conf_fun.get(c) + conf_fun.get(1 - c)))
+# plt.contour(1 - a/2, c, z, 0, colors='k')
+
+
+# x=0.2
+# print("addd: ",conf_fun.get(x) + conf_fun.get(1 - x))
 # roots = []
 # for p in ps:
-#     f1 = lambda x: x - integrate.quad(fun, 0, p, (x, q, x0, k, m))[0] / p
-#     root = get_roots(f1, 0, 1, 0.001)
-#     #print(f"p:\t{p}\t{root}")
-#     plt.plot(p * np.ones(len(root)), root, '.c')
+#     f1 = lambda x: x - integrate.quad(c_p, 0, p, (x, conf_fun, nonconf_fun))[0] / p
+#     # f1 = lambda x: x - p * nonconf_fun.get(x) - (1 - p) * conf_fun.get(x) #/ (conf_fun.get(x) + conf_fun.get(1 - x))
+#     root = get_roots(f1, 0, 1, 0.0011)
+#     print(f"p:\t{p}\t{root}")
+#     #print(p)
+#     plt.plot(1 - p * np.ones(len(root))/2, root, '.r')
 #     roots = roots + root
+#
+# plt.xlim([0, 1])
+# plt.ylim([0, 1])
+# plt.title(conf_fun.__str__() + " " + nonconf_fun.__str__())
+# plt.xlabel("nonconformity")
+# plt.ylabel("concentration")
+#
 # plt.show()
+
 # ps, cs = get_phase_diagram(p_start=0,
 #                            p_stop=1,
 #                            p_num=110,
