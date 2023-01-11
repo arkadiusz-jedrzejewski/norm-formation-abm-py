@@ -181,7 +181,7 @@ def rootsearch(f, a, b, dx) -> tuple:
         return x1, x2
 
 
-def bisection(f, x1, x2, switch=False, tol=1e-9) -> float:
+def bisection(f, x1, x2, switch=False, tol=1e-15) -> float:
     """
     Bisection finds a root of f(x) = 0 by bisection.
     The root must be inside interval (x1, x2).
@@ -238,48 +238,105 @@ def get_roots(f, a, b, dx) -> list:
             a = x2
             root = bisection(f, x1, x2, True)
             if root is not None:
-                roots.append(root)
+                if root < b:
+                    roots.append(root)
     return roots
 
 
-def fun_symmetric_half(x, q, k):
+def diff_p_symmetric_power_half(x, q, k):
+    """
+    first derivative of p_symmetric_power_half(x, q, k) with respect to x
+    :param x: concentration of agents with opinion 1
+    :param q: as in SymmetricPower(q) (considered only x<0.5)
+    :param k: as in Logistic(x0=0.5, k, m=0.5)
+    :return:
+    """
     return (q * (2 * x) ** (q - 1) - 1) / ((2 * x) ** q / 2 - 1 / (np.exp(k * (x - 1 / 2)) + 1)) + (
             (q * (2 * x) ** (q - 1) + (k * np.exp(k * (x - 1 / 2))) / (np.exp(k * (x - 1 / 2)) + 1) ** 2) * (
             x - (2 * x) ** q / 2)) / ((2 * x) ** q / 2 - 1 / (np.exp(k * (x - 1 / 2)) + 1)) ** 2
 
 
-def fun_symmetric_helf_2(x, q, k):
-    return (x - np.power(2 * x, q) / 2) / (1 / (1 + np.exp(k * (x - 0.5))) - np.power(2 * x, q) / 2)
+def p_symmetric_power_half(x, q, k):
+    """
+    returns fixed point (p) in the case of quenched Bernoulli distribution (returns Bernoulli probability) or any
+    annealed distribution (returns expected value of the distribution)
+
+    Note: it is simplified version of get_fixed_points function where conf_fun=SymmetricPower(q) and
+    nonconf_fun=Logistic(x0=0.5, k, m=0.5).
+    The domain of this function x<0.5 (the diagram is symmetric along x=0.5 for these conditions)
+    :param x: concentration of agents with opinion 1
+    :param q: as in SymmetricPower(q) (considered only x<0.5)
+    :param k: as in Logistic(x0=0.5, k, m=0.5)
+    :return:
+    """
+    return (x - (2 * x) ** q / 2) / (1 / (1 + np.exp(k * (x - 0.5))) - (2 * x) ** q / 2)
 
 
-qs = np.linspace(1.001, 8, 30)
-k = np.linspace(5, 40, 800)
-print(k[1]-k[0])
-solq = []
-for q in qs:
-    sol = []
-    plt.figure(100)
-    for ki in k:
-        soli = [fun_symmetric_helf_2(x, q, ki) for x in
-                get_roots(lambda x: fun_symmetric_half(x, q, ki), 0, 0.5, 0.0011)]
-        sol.append(soli)
-
-        # plt.plot([ki] * len(soli), soli, '.b')
-    # plt.plot(k, 4 * (q - 1) / (4 * q + k),
-    #          'k')  # for SymmetricPower (=> annealed = quenched) / for Power quenched case
-    # plt.xlabel('k')
-    # plt.ylabel('p')
-    # plt.show()
+def extrema_symmetric_power_half(q, k):
+    """
+    returns extrema of p_symmetric_power_half for x in (0, 0.5) and given parameters q and k
+    :param q: as in SymmetricPower(q) (considered only x<0.5)
+    :param k: as in Logistic(x0=0.5, k, m=0.5)
+    :return:
+    """
+    sol = get_roots(lambda x: diff_p_symmetric_power_half(x, q, k), 0, 0.5, 0.001)
     # print(sol)
-    sol = [len(x) != 0 for x in sol]
-    # print(sol)
-    ind = sol.index(True)
-    print(q, k[ind])
-    solq.append(k[ind])
-plt.plot(qs, solq)
-plt.xlabel("q")
-plt.ylabel("k")
-plt.title("SymmetricPower Bernoulli distribution")
+    return sol
+
+
+def ptd_symmetric_power(q, ks):
+    extrema_points = []
+    for k in ks:
+        extrema_p = [p_symmetric_power_half(x, q, k) for x in extrema_symmetric_power_half(q, k)]
+        extrema_points.append(extrema_p)
+    return extrema_points
+
+
+ks = np.linspace(0, 40, 100)
+q = 2
+ext = ptd_symmetric_power(q, ks)
+
+p = []
+kn = []
+for i, item in enumerate(ext):
+    if len(item) != 0:
+        p += item
+        kn += [ks[i]] * len(item)
+print(ext)
+print(p)
+print(kn)
+
+kn = np.argsort(p)
+p = np.sort(p)
+plt.plot(kn, p)
+# qs = np.linspace(1.001, 8, 15)
+# k = np.linspace(0, 40, 100)
+# print(k[1] - k[0])
+# solq = []
+# plt.figure(100)
+# for q in qs:
+#     sol = []
+#     for ki in k:
+#         soli = [p_symmetric_power_half(x, q, ki) for x in extrema_symmetric_power_half(q, ki)]
+#         sol.append(soli)
+#
+#         # plt.plot([ki] * len(soli), soli, '.b')
+#     # plt.plot(k, 4 * (q - 1) / (4 * q + k),
+#     #          'k')  # for SymmetricPower (=> annealed = quenched) / for Power quenched case
+#     # plt.xlabel('k')
+#     # plt.ylabel('p')
+#     # plt.show()
+#     print(sol)
+#     sol = [len(x) != 0 for x in sol]
+#     #print(sol)
+#     ind = sol.index(True)
+#     print(q, k[ind])
+#     solq.append(k[ind])
+# plt.plot(qs, solq, ':.')
+# plt.xlabel("q")
+# plt.ylabel("k")
+# plt.title("SymmetricPower Bernoulli distribution")
+# print("lol", extrema_symmetric_power_half(2.500785714285714, 0.40404040404040403))
 # plt.plot(conc, nonf.get(conc))
 # plt.ylim((0, 1))
 # plt.show()
