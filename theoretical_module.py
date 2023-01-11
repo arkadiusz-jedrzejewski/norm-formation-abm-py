@@ -242,6 +242,44 @@ def get_roots(f, a, b, dx) -> list:
     return roots
 
 
+def fun_symmetric_half(x, q, k):
+    return (q * (2 * x) ** (q - 1) - 1) / ((2 * x) ** q / 2 - 1 / (np.exp(k * (x - 1 / 2)) + 1)) + (
+            (q * (2 * x) ** (q - 1) + (k * np.exp(k * (x - 1 / 2))) / (np.exp(k * (x - 1 / 2)) + 1) ** 2) * (
+            x - (2 * x) ** q / 2)) / ((2 * x) ** q / 2 - 1 / (np.exp(k * (x - 1 / 2)) + 1)) ** 2
+
+
+def fun_symmetric_helf_2(x, q, k):
+    return (x - np.power(2 * x, q) / 2) / (1 / (1 + np.exp(k * (x - 0.5))) - np.power(2 * x, q) / 2)
+
+
+qs = np.linspace(1.001, 8, 30)
+k = np.linspace(5, 40, 800)
+print(k[1]-k[0])
+solq = []
+for q in qs:
+    sol = []
+    plt.figure(100)
+    for ki in k:
+        soli = [fun_symmetric_helf_2(x, q, ki) for x in
+                get_roots(lambda x: fun_symmetric_half(x, q, ki), 0, 0.5, 0.0011)]
+        sol.append(soli)
+
+        # plt.plot([ki] * len(soli), soli, '.b')
+    # plt.plot(k, 4 * (q - 1) / (4 * q + k),
+    #          'k')  # for SymmetricPower (=> annealed = quenched) / for Power quenched case
+    # plt.xlabel('k')
+    # plt.ylabel('p')
+    # plt.show()
+    # print(sol)
+    sol = [len(x) != 0 for x in sol]
+    # print(sol)
+    ind = sol.index(True)
+    print(q, k[ind])
+    solq.append(k[ind])
+plt.plot(qs, solq)
+plt.xlabel("q")
+plt.ylabel("k")
+plt.title("SymmetricPower Bernoulli distribution")
 # plt.plot(conc, nonf.get(conc))
 # plt.ylim((0, 1))
 # plt.show()
