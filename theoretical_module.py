@@ -181,7 +181,7 @@ def rootsearch(f, a, b, dx) -> tuple:
         return x1, x2
 
 
-def bisection(f, x1, x2, switch=False, tol=1e-15) -> float:
+def bisection(f, x1, x2, switch=False, tol=1e-9) -> float:
     """
     Bisection finds a root of f(x) = 0 by bisection.
     The root must be inside interval (x1, x2).
@@ -279,36 +279,111 @@ def extrema_symmetric_power_half(q, k):
     :param k: as in Logistic(x0=0.5, k, m=0.5)
     :return:
     """
-    sol = get_roots(lambda x: diff_p_symmetric_power_half(x, q, k), 0, 0.5, 0.001)
+    sol = get_roots(lambda x: diff_p_symmetric_power_half(x, q, k), 0, 0.5, 0.007)
     # print(sol)
     return sol
 
 
-def ptd_symmetric_power(q, ks):
-    extrema_points = []
+def ptd_symmetric_power_fun_k(q, ks):
+    max_points = []
+    min_points = []
+
     for k in ks:
-        extrema_p = [p_symmetric_power_half(x, q, k) for x in extrema_symmetric_power_half(q, k)]
-        extrema_points.append(extrema_p)
-    return extrema_points
+        extrema = extrema_symmetric_power_half(q, k)
+        if len(extrema) == 2:
+            extrema = [p_symmetric_power_half(x, q, k) for x in extrema]
+            if extrema[0] > extrema[1]:
+                max_points.append(extrema[0])
+                min_points.append(extrema[1])
+            else:
+                max_points.append(extrema[1])
+                min_points.append(extrema[0])
+        else:
+            max_points.append(None)
+            min_points.append(None)
+    return min_points, max_points
 
 
-ks = np.linspace(0, 40, 100)
+def ptd_symmetric_power_fun_q(qs, k):
+    max_points = []
+    min_points = []
+
+    for q in qs:
+        extrema = extrema_symmetric_power_half(q, k)
+        if len(extrema) == 2:
+            extrema = [p_symmetric_power_half(x, q, k) for x in extrema]
+            if extrema[0] > extrema[1]:
+                max_points.append(extrema[0])
+                min_points.append(extrema[1])
+            else:
+                max_points.append(extrema[1])
+                min_points.append(extrema[0])
+        else:
+            max_points.append(None)
+            min_points.append(None)
+    return min_points, max_points
+
+
+
+ks = np.linspace(0, 70, 100)
 q = 2
-ext = ptd_symmetric_power(q, ks)
+min_points, max_points = ptd_symmetric_power_fun_k(q, ks)
 
-p = []
-kn = []
-for i, item in enumerate(ext):
-    if len(item) != 0:
-        p += item
-        kn += [ks[i]] * len(item)
-print(ext)
-print(p)
-print(kn)
+plt.plot(ks, min_points)
+plt.plot(ks, max_points)
+plt.plot(ks, 4 * (q - 1) / (4 * q + ks))
+plt.title(f"SymmetricPower(q={q}) Logistic(x0=0.5, k, m=0.5) (annealed=quenched / any distribution)")
+plt.xlabel("k")
+plt.ylabel("p")
 
-kn = np.argsort(p)
-p = np.sort(p)
-plt.plot(kn, p)
+
+plt.figure()
+qs = np.linspace(1.0001, 10, 100)
+k = 10
+min_points, max_points = ptd_symmetric_power_fun_q(qs, k)
+
+plt.plot(qs, min_points)
+plt.plot(qs, max_points)
+plt.plot(qs, 4 * (qs - 1) / (4 * qs + k))
+plt.title(f"SymmetricPower(q) Logistic(x0=0.5, k={k}, m=0.5) (annealed=quenched / any distribution)")
+plt.xlabel("q")
+plt.ylabel("p")
+
+
+
+
+qs = np.linspace(1.0001, 10, 100)
+ks = np.linspace(0, 70, 100)
+
+q=2
+min_points, max_points = ptd_symmetric_power_fun_k(q, ks)
+print(min_points)
+sol = [False if x is None else True for x in min_points]
+#sol = list(map(lambda x: False if x is None else True, min_points))
+print(sol)
+print(min(ks[sol]))
+sol = [False if x is None else True for x in max_points]
+print(sol)
+print(min(ks[sol]))
+
+qs = np.linspace(1.0001, 8, 20)
+ks = np.linspace(0, 50, 400)
+q_sol = []
+k_sol = []
+for q in qs:
+    min_points, max_points = ptd_symmetric_power_fun_k(q, ks)
+    sol = [False if x is None else True for x in min_points]
+    q_sol.append(q)
+    k_sol.append(min(ks[sol]))
+
+print("k_sol", k_sol)
+plt.figure()
+plt.plot(q_sol, k_sol)
+plt.xlabel("q")
+plt.ylabel("k")
+plt.xlim([1, 8])
+plt.title("SymmetricPower annealed=quenched / any distribution")
+
 # qs = np.linspace(1.001, 8, 15)
 # k = np.linspace(0, 40, 100)
 # print(k[1] - k[0])
