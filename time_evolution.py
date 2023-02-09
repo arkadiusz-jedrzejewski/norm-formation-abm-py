@@ -258,21 +258,19 @@ def time_evolution_fig(fig, ax, conf_fun, nonconf_fun, p, t_max, num, xs_ini):
     ## annaled
     x_fixed, stable = get_fixed_points_for(p, conf_fun, nonconf_fun, False)
     for i, x in enumerate(x_fixed):
-        print(x, i, stable[i])
         if stable[i]:
             ax.plot(t_max - 1, x, "or")
         else:
             ax.plot(1, x, "sr")
-    print(x_fixed)
+
     # quenched
     x_fixed, stable = get_fixed_points_for(p, conf_fun, nonconf_fun, True)
     for i, x in enumerate(x_fixed):
-        print(x, i)
         if stable[i]:
             ax.plot(t_max, x, "ob")
         else:
             ax.plot(0, x, "sb")
-    print(x_fixed)
+
     ax.set_xlabel("MCS")
     ax.set_ylabel("x")
     ax.set_xlim([0, t_max])
@@ -349,8 +347,6 @@ ax[0].plot([p, p], [0, 1], ':k')
 ax[1].plot([p, p], [0, 1], ':k')
 
 conf_fun = Power(q=q)
-
-print(f"p: {p}")
 
 fig, ax = plt.subplots(2, 1)
 
