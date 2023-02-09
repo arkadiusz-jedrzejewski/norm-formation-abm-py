@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
-from theoretical_module import Logistic, Power, SymmetricPower, get_fixed_points
+from theoretical_module import Logistic, Power, SymmetricPower, get_fixed_points, get_roots
 
 
 def conformity_function_ode(x, q) -> float:
@@ -122,18 +122,20 @@ def diagram_fig(ax, col, num, conf_fun, nonconf_fun, is_quenched):
     return p, x_fixed
 
 
-def diagram_ann_que_fig(fig, ax, num, conf_fun, nonconf_fun):
+def diagram_ann_que_fig(fig, ax, num, q, nonconf_fun):
+    conf_fun = Power(q=q)
     fig.suptitle(nonconf_fun.__str__())
+    ax[0].plot([0, 1], [0.5, 0.5], ":k")
     p, _ = diagram_fig(ax[0],
                        col="r",
-                       num=200,
+                       num=num,
                        conf_fun=conf_fun,
                        nonconf_fun=nonconf_fun,
                        is_quenched=False)
     p_max = max(p)
     p, _ = diagram_fig(ax[0],
                        col="b",
-                       num=200,
+                       num=num,
                        conf_fun=conf_fun,
                        nonconf_fun=nonconf_fun,
                        is_quenched=True)
@@ -147,18 +149,19 @@ def diagram_ann_que_fig(fig, ax, num, conf_fun, nonconf_fun):
     ax[0].set_xlabel("$p$")
     ax[0].set_title(conf_fun.__str__())
 
+    ax[1].plot([0, 1], [0.5, 0.5], ":k")
     conf_fun = SymmetricPower(q=q)
     p, _ = diagram_fig(ax[1],
-                col="r",
-                num=200,
-                conf_fun=conf_fun,
-                nonconf_fun=nonconf_fun,
-                is_quenched=False)
-    p_max = max(p_max, max(p))
+                       col="r",
+                       num=num,
+                       conf_fun=conf_fun,
+                       nonconf_fun=nonconf_fun,
+                       is_quenched=False)
+    p_max = min(max(p_max, max(p)), 1)
 
     diagram_fig(ax[1],
                 col="b",
-                num=200,
+                num=num,
                 conf_fun=conf_fun,
                 nonconf_fun=nonconf_fun,
                 is_quenched=True)
@@ -168,13 +171,116 @@ def diagram_ann_que_fig(fig, ax, num, conf_fun, nonconf_fun):
     ax[1].set_ylabel("$x^*$")
     ax[1].set_xlabel("$p$")
     ax[1].set_title(conf_fun.__str__())
-    ax[0].set_xlim([0, p_max * 1.1])
-    ax[1].set_xlim([0, p_max * 1.1])
+    ax[0].set_xlim([0, min(p_max * 1.1, 1)])
+    ax[1].set_xlim([0, min(p_max * 1.1, 1)])
     plt.tight_layout()
+
+
+def get_time_evolution(p, t_max, num, c_ini, conf_fun, nonconf_fun, is_quenched):
+    t_eval = np.linspace(0, t_max, num)
+    if is_quenched:
+        sol = solve_ivp(model_quenched_ode,
+                        t_span=(0, t_max),
+                        t_eval=t_eval,
+                        y0=c_ini,
+                        args=(p, conf_fun, nonconf_fun))
+        t, x1, x2 = sol.t, sol.y[0, :], sol.y[1, :]
+        x = x1 * p + x2 * (1 - p)
+        return t, x1, x2, x
+    else:
+        sol = solve_ivp(model_ode,
+                        t_span=(0, t_max),
+                        t_eval=t_eval,
+                        y0=c_ini,
+                        args=(p, conf_fun, nonconf_fun),
+                        method="LSODA")
+        t, x = sol.t, sol.y[0, :]
+        return t, x
+
+
+def quenched_fun(x, p, conf_fun, nonconf_fun):
+    # print(x)
+    numerator = x * (conf_fun.get(1 - x) + conf_fun.get(x)) - conf_fun.get(x)
+    denominator = nonconf_fun.get(x) * (
+            conf_fun.get(1 - x) + conf_fun.get(x)) - conf_fun.get(x)
+
+    # print(numerator, denominator, p)
+    return numerator / denominator - p
+
+
+def annealed_fun(x, p, conf_fun, nonconf_fun):
+    numerator = x * conf_fun.get(1 - x) - (1 - x) * conf_fun.get(x)
+    return numerator / (nonconf_fun.get(x) - x + numerator) - p
+
+
+def get_fixed_points_for(p, conf_fun, nonconf_fun, is_quenched):
+    stable = []
+    if is_quenched:
+        # quenched model
+        x_fixed = get_roots(lambda x: quenched_fun(x, p, conf_fun, nonconf_fun), 0, 1, 0.001)
+        x_fixed.append(0.5)
+        for x in x_fixed:
+            stable.append(model_quenched_ode_d(x, p, conf_fun, nonconf_fun))
+    else:
+        # annealed model
+        # (for other than Bernoulli distributions this results still holds
+        # ps is the expected value of the distribution)
+        x_fixed = get_roots(lambda x: annealed_fun(x, p, conf_fun, nonconf_fun), 0, 1, 0.001)
+        x_fixed.append(0.5)
+        for x in x_fixed:
+            stable.append(model_ode_d(x, p, conf_fun, nonconf_fun))
+    return x_fixed, stable
+
+
+def time_evolution_fig(fig, ax, conf_fun, nonconf_fun, p, t_max, num, xs_ini):
+    t_eval = np.linspace(0, t_max, num)
+    ax.plot([0, t_max], [0.5, 0.5], "k:")
+    ax.set_title(conf_fun.__str__())
+    for x_ini in xs_ini:
+        t, x = get_time_evolution(p=p,
+                                  t_max=t_max,
+                                  num=num,
+                                  c_ini=[x_ini],
+                                  conf_fun=conf_fun,
+                                  nonconf_fun=nonconf_fun,
+                                  is_quenched=False)
+        ax.plot(t, x, 'r')
+
+        t, x1, x2, x = get_time_evolution(p=p,
+                                          t_max=t_max,
+                                          num=num,
+                                          c_ini=[x_ini, x_ini],
+                                          conf_fun=conf_fun,
+                                          nonconf_fun=nonconf_fun,
+                                          is_quenched=True)
+        ax.plot(t, x, 'b--')
+
+    ## annaled
+    x_fixed, stable = get_fixed_points_for(p, conf_fun, nonconf_fun, False)
+    for i, x in enumerate(x_fixed):
+        print(x, i, stable[i])
+        if stable[i]:
+            ax.plot(t_max-1, x, "or")
+        else:
+            ax.plot(1, x, "sr")
+    print(x_fixed)
+    #quenched
+    x_fixed, stable = get_fixed_points_for(p, conf_fun, nonconf_fun, True)
+    for i, x in enumerate(x_fixed):
+        print(x,i)
+        if stable[i]:
+            ax.plot(t_max, x, "ob")
+        else:
+            ax.plot(0, x, "sb")
+    print(x_fixed)
+    ax.set_xlabel("MCS")
+    ax.set_ylabel("x")
+    ax.set_xlim([0, t_max])
+    ax.set_ylim([0, 1])
+
 
 ##
 q = 3
-conf_fun = Power(q=q)
 x0, k, m = 0.5, 30, 0.5
 nonconf_fun = Logistic(x0=x0, k=k, m=m)
 ##
@@ -183,59 +289,96 @@ fig, ax = plt.subplots(2, 1)
 diagram_ann_que_fig(fig=fig,
                     ax=ax,
                     num=200,
-                    conf_fun=conf_fun,
+                    q=q,
                     nonconf_fun=nonconf_fun)
 
-plt.show()
-p = 0.1
+conf_fun = Power(q=q)
+p = 0.187
 print(f"p: {p}")
 
-t_max = 400
-num = 400
-t_eval = np.linspace(0, t_max, num)
+fig, ax = plt.subplots(2, 1)
 
-plt.figure(1)
-plt.plot([0, t_max], [0.5, 0.5], "k:")
+fig.suptitle(nonconf_fun.__str__())
+time_evolution_fig(fig,
+                   ax[0],
+                   conf_fun,
+                   nonconf_fun,
+                   p=p,
+                   t_max=100,
+                   num=200,
+                   xs_ini=np.linspace(0, 1, 10))
 
-for c_ini in np.linspace(0, 1, 40):
-    print(c_ini)
-    plt.figure(1)
-    sol = solve_ivp(model_ode,
-                    t_span=(0, t_max),
-                    t_eval=t_eval,
-                    y0=[c_ini],
-                    args=(p, conf_fun, nonconf_fun),
-                    method="LSODA")
-    t, x = sol.t, sol.y[0, :]
-    plt.plot(t, x, 'r')
+conf_fun = SymmetricPower(q=q)
+time_evolution_fig(fig,
+                   ax[1],
+                   conf_fun,
+                   nonconf_fun,
+                   p=p,
+                   t_max=100,
+                   num=200,
+                   xs_ini=np.linspace(0, 1, 10))
+plt.tight_layout()
+plt.show()
 
-    sol_que = solve_ivp(model_quenched_ode,
-                        t_span=(0, t_max),
-                        t_eval=t_eval,
-                        y0=[c_ini, c_ini],
-                        args=(p, conf_fun, nonconf_fun))
-    t, x1, x2 = sol_que.t, sol_que.y[0, :], sol_que.y[1, :]
-    x = x1 * p + x2 * (1 - p)
-    plt.plot(t, x, 'b--')
-    plt.figure(2)
-    plt.plot(x1, x2, 'b')
 
-plt.figure(1)
+plt.figure(2)
 plt.title(f"p={p} " + conf_fun.__str__() + " " + nonconf_fun.__str__())
 plt.xlim([0, t_max])
 plt.ylim([0, 1])
 plt.xlabel("MCS")
 plt.ylabel("x")
 
-plt.figure(2)
+plt.figure(3)
 plt.title(f"p={p} " + conf_fun.__str__() + " " + nonconf_fun.__str__())
 plt.xlim([0, 1])
 plt.ylim([0, 1])
 plt.xlabel("x1")
 plt.ylabel("x2")
 
+c1 = np.linspace(0, 1, 100)
+c = 0.5
+c2 = (c - c1 * p) / (1 - p)
+plt.plot(c1, c2, 'r')
+
 x, y = np.meshgrid(np.linspace(0, 1, 10), np.linspace(0, 1, 10))
 v_field = model_quenched_ode([], [x, y], p, conf_fun, nonconf_fun)
 plt.quiver(x, y, v_field[0], v_field[1])
 
+x_fixed, stable = get_fixed_points_for(p, conf_fun, nonconf_fun, False)
+for i, x in enumerate(x_fixed):
+    x1 = nonconf_fun.get(x)
+    x2 = conf_fun.get(x) / (conf_fun.get(x) + conf_fun.get(1 - x))
+    if stable[i]:
+        plt.figure(3)
+        plt.plot(x1, x2, "og")
+        plt.figure(2)
+        plt.plot(t_max, x, "og")
+    else:
+        plt.figure(3)
+        plt.plot(x1, x2, "sr")
+        plt.figure(2)
+        plt.plot(0, x, "sr")
+
+plt.figure(4)
+plt.title(f"p={p} " + conf_fun.__str__() + " " + nonconf_fun.__str__())
+plt.xlim([0, t_max])
+plt.ylim([0, 1])
+plt.xlabel("MCS")
+plt.ylabel("x")
+print(x_fixed)
+print([nonconf_fun.get(x) for x in x_fixed])
+print([conf_fun.get(x) / (conf_fun.get(x) + conf_fun.get(1 - x)) for x in x_fixed])
+print(stable)
+
+t, x1, x2, x = get_time_evolution(p=p,
+                                  t_max=t_max,
+                                  num=num,
+                                  c_ini=0.47,
+                                  conf_fun=conf_fun,
+                                  nonconf_fun=nonconf_fun,
+                                  is_quenched=True)
+plt.figure()
+plt.plot(t, x)
+plt.ylim([0, 1])
+plt.xlim([0, t_max])
 plt.show()

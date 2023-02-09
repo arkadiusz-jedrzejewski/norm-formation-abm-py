@@ -16,7 +16,18 @@ class Logistic:
         self.m = m
 
     def get(self, x):
-        return 2.0 * self.m / (1 + np.exp(self.k * (x - self.x0)))
+        if hasattr(x, "__len__"):
+            sol = np.copy(x)
+            i = np.logical_and(1 >= x, x >= 0)
+            sol[i] = 2.0 * self.m / (1 + np.exp(self.k * (sol[i] - self.x0)))
+            sol[np.logical_not(i)] = 0
+            return sol
+        if 0 <= x <= 1:
+            return 2.0 * self.m / (1 + np.exp(self.k * (x - self.x0)))
+        elif x<0:
+            return 0
+        elif x>1:
+            return 1
 
     def get_d(self, x):
         """
@@ -65,15 +76,22 @@ class SymmetricPower:
         if self.q == 0:
             return x * 0
         else:
-            sol = np.copy(x)
-            i_less = np.logical_and(0.5 > x, x >= 0)
-            i_more = np.logical_and(0.5 <= x, x <= 1)
-            i_zero = np.logical_and(np.logical_not(i_less), np.logical_not(i_more))
+            if hasattr(x, "__len__"):
+                sol = np.copy(x)
+                i_less = np.logical_and(0.5 > x, x >= 0)
+                i_more = np.logical_and(0.5 <= x, x <= 1)
+                i_zero = np.logical_and(np.logical_not(i_less), np.logical_not(i_more))
 
-            sol[i_less] = self.q * np.power(2 * x[i_less], self.q - 1)
-            sol[i_more] = self.q * np.power(2 * (1 - x[i_more]), self.q - 1)
-            sol[i_zero] = 0
-            return sol
+                sol[i_less] = self.q * np.power(2 * x[i_less], self.q - 1)
+                sol[i_more] = self.q * np.power(2 * (1 - x[i_more]), self.q - 1)
+                sol[i_zero] = 0
+                return sol
+            if 0.5 > x >= 0:
+                return self.q * np.power(2 * x, self.q - 1)
+            elif 0.5 <= x <= 1:
+                return self.q * np.power(2 * (1 - x), self.q - 1)
+            else:
+                return 0
 
     def __str__(self):
         return f"SymmetricPower(q={self.q})"
@@ -219,7 +237,11 @@ def rootsearch(f, a, b, dx) -> tuple:
         else:
             x1, f1 = x2, f2
             x2 = x1 + dx
+            if x2 >= b:
+                x2 = b
+            #print("x1", x1, "roots", x2)
             f2 = f(x2)
+            #print("f2", f2, "f1", f1)
     else:
         return x1, x2
 
