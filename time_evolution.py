@@ -260,14 +260,14 @@ def time_evolution_fig(fig, ax, conf_fun, nonconf_fun, p, t_max, num, xs_ini):
     for i, x in enumerate(x_fixed):
         print(x, i, stable[i])
         if stable[i]:
-            ax.plot(t_max-1, x, "or")
+            ax.plot(t_max - 1, x, "or")
         else:
             ax.plot(1, x, "sr")
     print(x_fixed)
-    #quenched
+    # quenched
     x_fixed, stable = get_fixed_points_for(p, conf_fun, nonconf_fun, True)
     for i, x in enumerate(x_fixed):
-        print(x,i)
+        print(x, i)
         if stable[i]:
             ax.plot(t_max, x, "ob")
         else:
@@ -279,11 +279,64 @@ def time_evolution_fig(fig, ax, conf_fun, nonconf_fun, p, t_max, num, xs_ini):
     ax.set_ylim([0, 1])
 
 
+def time_evolution_que_fig(fig, ax, conf_fun, nonconf_fun, p, t_max, num, xs_ini):
+    t_eval = np.linspace(0, t_max, num)
+    ax.plot([0, t_max], [0.5, 0.5], "k:")
+    ax.set_title(conf_fun.__str__())
+    t, x1, x2, x = get_time_evolution(p=p,
+                                      t_max=t_max,
+                                      num=num,
+                                      c_ini=[xs_ini, xs_ini],
+                                      conf_fun=conf_fun,
+                                      nonconf_fun=nonconf_fun,
+                                      is_quenched=True)
+    ax.plot(t, x, 'k')
+    ax.plot(t, x1, 'r')
+    ax.plot(t, x2, 'g')
+    ax.set_xlabel("MCS")
+    ax.set_ylabel("x")
+    ax.set_xlim([0, t_max])
+    ax.set_ylim([0, 1])
+
+
+def quiver_fig(fig, ax, conf_fun, nonconf_fun, p):
+    x, y = np.meshgrid(np.linspace(0, 1, 10), np.linspace(0, 1, 10))
+    v_field = model_quenched_ode([], [x, y], p, conf_fun, nonconf_fun)
+    ax.quiver(x, y, v_field[0], v_field[1])
+
+    ax.set_title(conf_fun.__str__())
+    ax.set_xlim([0, 1])
+    ax.set_ylim([0, 1])
+    ax.set_xlabel("x1")
+    ax.set_ylabel("x2")
+
+    x_fixed, stable = get_fixed_points_for(p, conf_fun, nonconf_fun, True)
+    for i, x in enumerate(x_fixed):
+        x1 = nonconf_fun.get(x)
+        x2 = conf_fun.get(x) / (conf_fun.get(x) + conf_fun.get(1 - x))
+        if stable[i]:
+            ax.plot(x1, x2, "og")
+        else:
+            ax.plot(x1, x2, "sm")
+
+    x1_ini = np.linspace(0, 1, 14)
+    for x1_i in x1_ini:
+        t, x1, x2, x = get_time_evolution(p=p,
+                                          t_max=200,
+                                          num=200,
+                                          c_ini=[x1_i, x1_i],
+                                          conf_fun=conf_fun,
+                                          nonconf_fun=nonconf_fun,
+                                          is_quenched=True)
+        ax.plot(x1, x2, 'g')
+
+
 ##
 q = 3
 x0, k, m = 0.5, 30, 0.5
 nonconf_fun = Logistic(x0=x0, k=k, m=m)
 ##
+p = 0.187
 
 fig, ax = plt.subplots(2, 1)
 diagram_ann_que_fig(fig=fig,
@@ -292,13 +345,16 @@ diagram_ann_que_fig(fig=fig,
                     q=q,
                     nonconf_fun=nonconf_fun)
 
+ax[0].plot([p, p], [0, 1], ':k')
+ax[1].plot([p, p], [0, 1], ':k')
+
 conf_fun = Power(q=q)
-p = 0.187
+
 print(f"p: {p}")
 
 fig, ax = plt.subplots(2, 1)
 
-fig.suptitle(nonconf_fun.__str__())
+fig.suptitle(f"p={p} " + nonconf_fun.__str__())
 time_evolution_fig(fig,
                    ax[0],
                    conf_fun,
@@ -318,67 +374,24 @@ time_evolution_fig(fig,
                    num=200,
                    xs_ini=np.linspace(0, 1, 10))
 plt.tight_layout()
-plt.show()
 
+fig, ax = plt.subplots(2, 1)
+fig.suptitle(f"p={p} " + nonconf_fun.__str__())
 
-plt.figure(2)
-plt.title(f"p={p} " + conf_fun.__str__() + " " + nonconf_fun.__str__())
-plt.xlim([0, t_max])
-plt.ylim([0, 1])
-plt.xlabel("MCS")
-plt.ylabel("x")
+conf_fun = Power(q=q)
+quiver_fig(fig, ax[0], conf_fun, nonconf_fun, p)
 
-plt.figure(3)
-plt.title(f"p={p} " + conf_fun.__str__() + " " + nonconf_fun.__str__())
-plt.xlim([0, 1])
-plt.ylim([0, 1])
-plt.xlabel("x1")
-plt.ylabel("x2")
+conf_fun = SymmetricPower(q=q)
+quiver_fig(fig, ax[1], conf_fun, nonconf_fun, p)
+plt.tight_layout()
 
-c1 = np.linspace(0, 1, 100)
-c = 0.5
-c2 = (c - c1 * p) / (1 - p)
-plt.plot(c1, c2, 'r')
+fig, ax = plt.subplots(2, 1)
+fig.suptitle(f"p={p} " + nonconf_fun.__str__())
 
-x, y = np.meshgrid(np.linspace(0, 1, 10), np.linspace(0, 1, 10))
-v_field = model_quenched_ode([], [x, y], p, conf_fun, nonconf_fun)
-plt.quiver(x, y, v_field[0], v_field[1])
+conf_fun = Power(q=q)
+time_evolution_que_fig(fig, ax[0], conf_fun, nonconf_fun, p, 100, 100, 1)
+conf_fun = SymmetricPower(q=q)
+time_evolution_que_fig(fig, ax[1], conf_fun, nonconf_fun, p, 100, 100, 1)
+plt.tight_layout()
 
-x_fixed, stable = get_fixed_points_for(p, conf_fun, nonconf_fun, False)
-for i, x in enumerate(x_fixed):
-    x1 = nonconf_fun.get(x)
-    x2 = conf_fun.get(x) / (conf_fun.get(x) + conf_fun.get(1 - x))
-    if stable[i]:
-        plt.figure(3)
-        plt.plot(x1, x2, "og")
-        plt.figure(2)
-        plt.plot(t_max, x, "og")
-    else:
-        plt.figure(3)
-        plt.plot(x1, x2, "sr")
-        plt.figure(2)
-        plt.plot(0, x, "sr")
-
-plt.figure(4)
-plt.title(f"p={p} " + conf_fun.__str__() + " " + nonconf_fun.__str__())
-plt.xlim([0, t_max])
-plt.ylim([0, 1])
-plt.xlabel("MCS")
-plt.ylabel("x")
-print(x_fixed)
-print([nonconf_fun.get(x) for x in x_fixed])
-print([conf_fun.get(x) / (conf_fun.get(x) + conf_fun.get(1 - x)) for x in x_fixed])
-print(stable)
-
-t, x1, x2, x = get_time_evolution(p=p,
-                                  t_max=t_max,
-                                  num=num,
-                                  c_ini=0.47,
-                                  conf_fun=conf_fun,
-                                  nonconf_fun=nonconf_fun,
-                                  is_quenched=True)
-plt.figure()
-plt.plot(t, x)
-plt.ylim([0, 1])
-plt.xlim([0, t_max])
 plt.show()
