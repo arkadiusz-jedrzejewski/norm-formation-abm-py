@@ -15,8 +15,8 @@ from matplotlib.animation import PillowWriter
 # plot_diagram_power(q=np.linspace(0, 10, 1000), k=np.linspace(-4, 36, 1000), is_quenched=False)
 
 
-k_tab = np.linspace(80, -10, 200)
-plot_fixed_points_k(k_tab=k_tab, q=3, p=0.2)
+k_tab = np.linspace(-80, 10, 200)
+plot_fixed_points_k(k_tab=k_tab, q=4, p=0.2)
 
 # ## movie plot
 #

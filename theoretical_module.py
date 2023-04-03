@@ -19,11 +19,11 @@ class Logistic:
         if hasattr(x, "__len__"):
             sol = np.copy(x)
             i = np.logical_and(1 >= x, x >= 0)
-            sol[i] = 2.0 * self.m / (1 + np.exp(self.k * (sol[i] - self.x0)))
+            sol[i] = 2.0 * self.m / (1 + np.exp(-self.k * (sol[i] - self.x0)))
             sol[np.logical_not(i)] = 0
             return sol
         if 0 <= x <= 1:
-            return 2.0 * self.m / (1 + np.exp(self.k * (x - self.x0)))
+            return 2.0 * self.m / (1 + np.exp(-self.k * (x - self.x0)))
         elif x < 0:
             return 0
         elif x > 1:
@@ -38,8 +38,8 @@ class Logistic:
         if self.k == 0:
             return x * 0
         else:
-            return - 2 * self.m * self.k * np.exp(self.k * (x - self.x0)) \
-                / np.power(1 + np.exp(self.k * (x - self.x0)), 2)
+            return 2 * self.m * self.k * np.exp(-self.k * (x - self.x0)) \
+                / np.power(1 + np.exp(-self.k * (x - self.x0)), 2)
 
     def __str__(self):
         return f"Logistic(x0={self.x0}, k={self.k:.4f}, m={self.m})"
@@ -249,9 +249,9 @@ def plot_fixed_points_k(k_tab, q, p):
         x_fixed, stable = get_fixed_points_for(p, conf_fun, nonconf_fun, True)
         for i, x in enumerate(x_fixed):
             if stable[i]:
-                plt.plot(-k, x, ".k")
+                plt.plot(k, x, ".k")
             else:
-                plt.plot(-k, x, ".r")
+                plt.plot(k, x, ".r")
         print(get_fixed_points_for(p, conf_fun, nonconf_fun, True))
     plt.show()
 
