@@ -15,32 +15,83 @@ class Logistic:
         self.k = k
         self.m = m
 
-    def get(self, conc):
-        return 2.0 * self.m / (1 + np.exp(self.k * (conc - self.x0)))
+    def get(self, x):
+        if hasattr(x, "__len__"):
+            sol = np.copy(x)
+            i = np.logical_and(1 >= x, x >= 0)
+            sol[i] = 2.0 * self.m / (1 + np.exp(self.k * (sol[i] - self.x0)))
+            sol[np.logical_not(i)] = 0
+            return sol
+        if 0 <= x <= 1:
+            return 2.0 * self.m / (1 + np.exp(self.k * (x - self.x0)))
+        elif x<0:
+            return 0
+        elif x>1:
+            return 1
+
+    def get_d(self, x):
+        """
+        returns derivative with respect to x evaluated at x
+        :param x:
+        :return:
+        """
+        if self.k == 0:
+            return x * 0
+        else:
+            return - 2 * self.m * self.k * np.exp(self.k * (x - self.x0)) \
+                / np.power(1 + np.exp(self.k * (x - self.x0)), 2)
 
     def __str__(self):
-        return f"Logistic(x0={self.x0}, k={self.k:.5f}, m={self.m})"
+        return f"Logistic(x0={self.x0}, k={self.k:.4f}, m={self.m})"
 
 
 class SymmetricPower:
     def __init__(self, q):
         self.q = q
 
-    def get(self, conc):
-        if hasattr(conc, "__len__"):
-            result = []
-            for c in conc:
-                if c < 0.5:
-                    result.append(np.power(2 * c, self.q) / 2)
-                else:
-                    result.append(1 - np.power(2 * (1 - c), self.q) / 2)
-            return np.array(result)
-        if 0.5 > conc >= 0:
-            return (2 * conc) ** self.q / 2
-        elif 0.5 <= conc <= 1:
-            return 1 - (2 * (1 - conc)) ** self.q / 2
+    def get(self, x):
+        if hasattr(x, "__len__"):
+            sol = np.copy(x)
+            i_less = np.logical_and(0.5 > x, x >= 0)
+            i_more = np.logical_and(0.5 <= x, x <= 1)
+            i_zero = np.logical_and(np.logical_not(i_less), np.logical_not(i_more))
+
+            sol[i_less] = (2 * x[i_less]) ** self.q / 2
+            sol[i_more] = 1 - (2 * (1 - x[i_more])) ** self.q / 2
+            sol[i_zero] = 0
+            return sol
+        if 0.5 > x >= 0:
+            return (2 * x) ** self.q / 2
+        elif 0.5 <= x <= 1:
+            return 1 - (2 * (1 - x)) ** self.q / 2
         else:
             return 0
+
+    def get_d(self, x):
+        """
+        returns derivative with respect to x evaluated at x
+        :param x:
+        :return:
+        """
+        if self.q == 0:
+            return x * 0
+        else:
+            if hasattr(x, "__len__"):
+                sol = np.copy(x)
+                i_less = np.logical_and(0.5 > x, x >= 0)
+                i_more = np.logical_and(0.5 <= x, x <= 1)
+                i_zero = np.logical_and(np.logical_not(i_less), np.logical_not(i_more))
+
+                sol[i_less] = self.q * np.power(2 * x[i_less], self.q - 1)
+                sol[i_more] = self.q * np.power(2 * (1 - x[i_more]), self.q - 1)
+                sol[i_zero] = 0
+                return sol
+            if 0.5 > x >= 0:
+                return self.q * np.power(2 * x, self.q - 1)
+            elif 0.5 <= x <= 1:
+                return self.q * np.power(2 * (1 - x), self.q - 1)
+            else:
+                return 0
 
     def __str__(self):
         return f"SymmetricPower(q={self.q})"
@@ -50,8 +101,19 @@ class Power:
     def __init__(self, q):
         self.q = q
 
-    def get(self, conc):
-        return conc ** self.q
+    def get(self, x):
+        return np.power(x, self.q)
+
+    def get_d(self, x):
+        """
+        returns derivative with respect to x evaluated at x
+        :param x:
+        :return:
+        """
+        if self.q == 0:
+            return x * 0
+        else:
+            return self.q * np.power(x, self.q - 1)
 
     def __str__(self):
         return f"Power(q={self.q})"
@@ -175,7 +237,11 @@ def rootsearch(f, a, b, dx) -> tuple:
         else:
             x1, f1 = x2, f2
             x2 = x1 + dx
+            if x2 >= b:
+                x2 = b
+            #print("x1", x1, "roots", x2)
             f2 = f(x2)
+            #print("f2", f2, "f1", f1)
     else:
         return x1, x2
 
@@ -377,9 +443,9 @@ def ptd_power_fun_q(qs, k, is_quenched):
 
 def plot_diagram_symmetric_power_fun_k(ax, q, ks):
     min_points, max_points = ptd_symmetric_power_fun_k(q, ks)
-    #plt.figure()
+    # plt.figure()
 
-    min_points_nf = [] #nonefree
+    min_points_nf = []  # nonefree
     max_points_nf = []
     ks_nf = []
     for i, item in enumerate(min_points):
@@ -388,9 +454,9 @@ def plot_diagram_symmetric_power_fun_k(ax, q, ks):
             max_points_nf.append(max_points[i])
             ks_nf.append(ks[i])
 
-    ax.plot3D(ks_nf, min_points_nf, [0.5]*len(ks_nf))
-    ax.plot3D(ks_nf, max_points_nf, [0.5]*len(ks_nf))
-    ax.plot3D(ks, 4 * (q - 1) / (4 * q + ks), [0.5]*len(ks))
+    ax.plot3D(ks_nf, min_points_nf, [0.5] * len(ks_nf))
+    ax.plot3D(ks_nf, max_points_nf, [0.5] * len(ks_nf))
+    ax.plot3D(ks, 4 * (q - 1) / (4 * q + ks), [0.5] * len(ks))
     # plt.title(f"SymmetricPower(q={q}) Logistic(x0=0.5, k, m=0.5) any distribution\nannealed=quenched")
     # plt.xlabel("k")
     # plt.ylabel("p")
@@ -421,7 +487,7 @@ def plot_diagram_symmetric_power(qs, ks):
     np.savetxt("test2.txt", np.column_stack((q_sol, k_sol)))
     plt.xlabel("q")
     plt.ylabel("k")
-    #plt.xlim([1, 8])
+    # plt.xlim([1, 8])
     plt.ylim([20, 40])
     plt.title("SymmetricPower any distribution annealed=quenched")
     print(len(q_sol))
@@ -429,18 +495,18 @@ def plot_diagram_symmetric_power(qs, ks):
 
 def plot_diagram_power_fun_k(axs, q, ks, is_quenched):
     ps, ks_p = ptd_power_fun_k(q, ks, is_quenched)
-    #plt.figure()
-    #ax = plt.axes(projection='3d')
-    axs.plot3D(ks_p, ps, [0.5]*len(ps))
+    # plt.figure()
+    # ax = plt.axes(projection='3d')
+    axs.plot3D(ks_p, ps, [0.5] * len(ps))
     if is_quenched:
-        axs.plot3D(ks, 4 * (q - 1) / (4 * q + ks), [0.5]*len(ks), 'r')  # for Power quenched case
+        axs.plot3D(ks, 4 * (q - 1) / (4 * q + ks), [0.5] * len(ks), 'r')  # for Power quenched case
         axs.plot3D(ks_p, 4 * (q - 1) / (4 * q + np.array(ks_p)), [0.5] * len(ks_p), 'm')
-        #plt.title(f"Power(q={q}) Logistic(x0=0.5, k, m=0.5) Bernoulli quenched")
+        # plt.title(f"Power(q={q}) Logistic(x0=0.5, k, m=0.5) Bernoulli quenched")
     else:
-        axs.plot3D(ks, (q - 1) / (q - 1 + 2 ** (q - 1) * (ks / 4 + 1)), [0.5]*len(ks), 'r')  # for Power annealed case
-        #plt.title(f"Power(q={q}) Logistic(x0=0.5, k, m=0.5) Bernoulli annealed")
-    #plt.xlabel("k")
-    #plt.ylabel("p")
+        axs.plot3D(ks, (q - 1) / (q - 1 + 2 ** (q - 1) * (ks / 4 + 1)), [0.5] * len(ks), 'r')  # for Power annealed case
+        # plt.title(f"Power(q={q}) Logistic(x0=0.5, k, m=0.5) Bernoulli annealed")
+    # plt.xlabel("k")
+    # plt.ylabel("p")
 
 
 def plot_diagram_power_fun_q(qs, k, is_quenched):
@@ -473,8 +539,6 @@ def plot_diagram_power(q, k, is_quenched):
     plt.xlabel("q")
     plt.ylabel("k")
     plt.xlim([1, 8])
-
-
 
 # qs = np.linspace(1.001, 8, 15)
 # k = np.linspace(0, 40, 100)
