@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
-from theoretical_module import Logistic, Power, SymmetricPower, get_fixed_points, get_roots
+from theoretical_module import Logistic, Power, SymmetricPower, get_fixed_points, get_roots, get_fixed_points_for
 
 
 def conformity_function_ode(x, q) -> float:
@@ -185,23 +185,7 @@ def annealed_fun(x, p, conf_fun, nonconf_fun):
     return numerator / (nonconf_fun.get(x) - x + numerator) - p
 
 
-def get_fixed_points_for(p, conf_fun, nonconf_fun, is_quenched):
-    stable = []
-    if is_quenched:
-        # quenched model
-        x_fixed = get_roots(lambda x: quenched_fun(x, p, conf_fun, nonconf_fun), 0, 1, 0.001)
-        x_fixed.append(0.5)
-        for x in x_fixed:
-            stable.append(model_quenched_ode_d(x, p, conf_fun, nonconf_fun))
-    else:
-        # annealed model
-        # (for other than Bernoulli distributions this results still holds
-        # ps is the expected value of the distribution)
-        x_fixed = get_roots(lambda x: annealed_fun(x, p, conf_fun, nonconf_fun), 0, 1, 0.001)
-        x_fixed.append(0.5)
-        for x in x_fixed:
-            stable.append(model_ode_d(x, p, conf_fun, nonconf_fun))
-    return x_fixed, stable
+
 
 
 def time_evolution_fig(fig, ax, conf_fun, nonconf_fun, p, t_max, num, xs_ini):

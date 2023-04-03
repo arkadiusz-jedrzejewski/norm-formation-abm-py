@@ -24,9 +24,9 @@ class Logistic:
             return sol
         if 0 <= x <= 1:
             return 2.0 * self.m / (1 + np.exp(self.k * (x - self.x0)))
-        elif x<0:
+        elif x < 0:
             return 0
-        elif x>1:
+        elif x > 1:
             return 1
 
     def get_d(self, x):
@@ -145,6 +145,25 @@ def get_fixed_points(num, conf_fun, nonconf_fun, is_quenched=False):
     return ps, cs
 
 
+def get_fixed_points_for(p, conf_fun, nonconf_fun, is_quenched):
+    stable = []
+    if is_quenched:
+        # quenched model
+        x_fixed = get_roots(lambda x: quenched_fun(x, p, conf_fun, nonconf_fun), 0, 1, 0.001)
+        x_fixed.append(0.5)
+        for x in x_fixed:
+            stable.append(model_quenched_ode_d(x, p, conf_fun, nonconf_fun))
+    else:
+        # annealed model
+        # (for other than Bernoulli distributions this results still holds
+        # ps is the expected value of the distribution)
+        x_fixed = get_roots(lambda x: annealed_fun(x, p, conf_fun, nonconf_fun), 0, 1, 0.001)
+        x_fixed.append(0.5)
+        for x in x_fixed:
+            stable.append(model_ode_d(x, p, conf_fun, nonconf_fun))
+    return x_fixed, stable
+
+
 # def get_fixed_points_uniform(num, q, f, is_quenched=False):
 #     cs = np.linspace(0.001, 0.999, num=num)
 #     a1 = cs - (conformity_function(cs, q) - nonconformity_function(cs, f)) / (
@@ -239,9 +258,9 @@ def rootsearch(f, a, b, dx) -> tuple:
             x2 = x1 + dx
             if x2 >= b:
                 x2 = b
-            #print("x1", x1, "roots", x2)
+            # print("x1", x1, "roots", x2)
             f2 = f(x2)
-            #print("f2", f2, "f1", f1)
+            # print("f2", f2, "f1", f1)
     else:
         return x1, x2
 
