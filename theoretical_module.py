@@ -145,6 +145,74 @@ def get_fixed_points(num, conf_fun, nonconf_fun, is_quenched=False):
     return ps, cs
 
 
+def quenched_fun(x, p, conf_fun, nonconf_fun):
+    """
+    function used to find numerically fixed points for the quenched model with Bernoulli distribution
+    :param x:
+    :param p:
+    :param conf_fun:
+    :param nonconf_fun:
+    :return:
+    """
+    # print(x)
+    numerator = x * (conf_fun.get(1 - x) + conf_fun.get(x)) - conf_fun.get(x)
+    denominator = nonconf_fun.get(x) * (
+            conf_fun.get(1 - x) + conf_fun.get(x)) - conf_fun.get(x)
+
+    # print(numerator, denominator, p)
+    return numerator / denominator - p
+
+
+def model_quenched_ode_d(x, p, conf_fun, nonconf_fun):
+    """
+    function used to determine numerically the stability of fixed points for the quenched model with Bernoulli distribution
+    :param x:
+    :param p:
+    :param conf_fun:
+    :param nonconf_fun:
+    :return:
+    """
+    x2 = conf_fun.get(x) / (conf_fun.get(1 - x) + conf_fun.get(x))
+
+    F11 = nonconf_fun.get_d(x) * p - 1
+    F12 = nonconf_fun.get_d(x) * (1 - p)
+    F21 = (1 - x2) * conf_fun.get_d(x) * p + x2 * conf_fun.get_d(1 - x) * p
+    F22 = -conf_fun.get(x) + (1 - x2) * conf_fun.get_d(x) * (1 - p) \
+          - conf_fun.get(1 - x) + x2 * conf_fun.get_d(1 - x) * (1 - p)
+
+    det = F11 * F22 - F12 * F21
+    tra = F11 + F22
+
+    return np.logical_and(det > 0, tra < 0)
+
+
+def annealed_fun(x, p, conf_fun, nonconf_fun):
+    """
+    function used to find numerically fixed points for the annealed model (any distribution - p is the average)
+    :param x:
+    :param p:
+    :param conf_fun:
+    :param nonconf_fun:
+    :return:
+    """
+    numerator = x * conf_fun.get(1 - x) - (1 - x) * conf_fun.get(x)
+    return numerator / (nonconf_fun.get(x) - x + numerator) - p
+
+
+def model_annealed_ode_d(x, p, conf_fun, nonconf_fun):
+    """
+    function used to determine numerically the stability of fixed points for the annealed model (any distribution - p is the average)
+    :param x:
+    :param p:
+    :param conf_fun:
+    :param nonconf_fun:
+    :return:
+    """
+    dF = p * (nonconf_fun.get_d(x) - 1) + (1 - p) * (
+            (1 - x) * conf_fun.get_d(x) + x * conf_fun.get_d(1 - x) - conf_fun.get(x) - conf_fun.get(1 - x))
+    return dF < 0
+
+
 def get_fixed_points_for(p, conf_fun, nonconf_fun, is_quenched):
     stable = []
     if is_quenched:
@@ -160,7 +228,7 @@ def get_fixed_points_for(p, conf_fun, nonconf_fun, is_quenched):
         x_fixed = get_roots(lambda x: annealed_fun(x, p, conf_fun, nonconf_fun), 0, 1, 0.001)
         x_fixed.append(0.5)
         for x in x_fixed:
-            stable.append(model_ode_d(x, p, conf_fun, nonconf_fun))
+            stable.append(model_annealed_ode_d(x, p, conf_fun, nonconf_fun))
     return x_fixed, stable
 
 

@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
-from theoretical_module import Logistic, Power, SymmetricPower, get_fixed_points, get_roots, get_fixed_points_for
+from theoretical_module import Logistic, Power, SymmetricPower, get_fixed_points, get_roots, get_fixed_points_for, model_quenched_ode_d, model_annealed_ode_d
 
 
 def conformity_function_ode(x, q) -> float:
@@ -55,12 +55,6 @@ def model_ode(t, x, p, conf_fun, nonconf_fun):
     return ode_rhs
 
 
-def model_ode_d(x, p, conf_fun, nonconf_fun):
-    dF = p * (nonconf_fun.get_d(x) - 1) + (1 - p) * (
-            (1 - x) * conf_fun.get_d(x) + x * conf_fun.get_d(1 - x) - conf_fun.get(x) - conf_fun.get(1 - x))
-    return dF < 0
-
-
 def model_quenched_ode(t, xs, p, conf_fun, nonconf_fun):
     """
 
@@ -79,21 +73,6 @@ def model_quenched_ode(t, xs, p, conf_fun, nonconf_fun):
     return ode_rhs
 
 
-def model_quenched_ode_d(x, p, conf_fun, nonconf_fun):
-    x2 = conf_fun.get(x) / (conf_fun.get(1 - x) + conf_fun.get(x))
-
-    F11 = nonconf_fun.get_d(x) * p - 1
-    F12 = nonconf_fun.get_d(x) * (1 - p)
-    F21 = (1 - x2) * conf_fun.get_d(x) * p + x2 * conf_fun.get_d(1 - x) * p
-    F22 = -conf_fun.get(x) + (1 - x2) * conf_fun.get_d(x) * (1 - p) \
-          - conf_fun.get(1 - x) + x2 * conf_fun.get_d(1 - x) * (1 - p)
-
-    det = F11 * F22 - F12 * F21
-    tra = F11 + F22
-
-    return np.logical_and(det > 0, tra < 0)
-
-
 def diagram_fig(ax, col, num, conf_fun, nonconf_fun, is_quenched):
     p, x_fixed = get_fixed_points(num=num,
                                   conf_fun=conf_fun,
@@ -106,10 +85,10 @@ def diagram_fig(ax, col, num, conf_fun, nonconf_fun, is_quenched):
                                       conf_fun=conf_fun,
                                       nonconf_fun=nonconf_fun)
     else:
-        stable = model_ode_d(x=x_fixed,
-                             p=p,
-                             conf_fun=conf_fun,
-                             nonconf_fun=nonconf_fun)
+        stable = model_annealed_ode_d(x=x_fixed,
+                                      p=p,
+                                      conf_fun=conf_fun,
+                                      nonconf_fun=nonconf_fun)
     x_stable = np.copy(x_fixed)
     x_stable[np.logical_not(stable)] = np.NAN
 
@@ -168,24 +147,6 @@ def get_time_evolution(p, t_max, num, c_ini, conf_fun, nonconf_fun, is_quenched)
                         method="LSODA")
         t, x = sol.t, sol.y[0, :]
         return t, x
-
-
-def quenched_fun(x, p, conf_fun, nonconf_fun):
-    # print(x)
-    numerator = x * (conf_fun.get(1 - x) + conf_fun.get(x)) - conf_fun.get(x)
-    denominator = nonconf_fun.get(x) * (
-            conf_fun.get(1 - x) + conf_fun.get(x)) - conf_fun.get(x)
-
-    # print(numerator, denominator, p)
-    return numerator / denominator - p
-
-
-def annealed_fun(x, p, conf_fun, nonconf_fun):
-    numerator = x * conf_fun.get(1 - x) - (1 - x) * conf_fun.get(x)
-    return numerator / (nonconf_fun.get(x) - x + numerator) - p
-
-
-
 
 
 def time_evolution_fig(fig, ax, conf_fun, nonconf_fun, p, t_max, num, xs_ini):
@@ -284,6 +245,7 @@ def quiver_fig(fig, ax, conf_fun, nonconf_fun, p):
                                           is_quenched=True)
         ax.plot(x1, x2, 'g')
 
+
 ##
 q = 5
 x0, k, m = 0.5, 15, 0.5
@@ -297,20 +259,19 @@ title = f"Time-evolution " + conf_fun.__str__() + " " + nonconf_fun.__str__()
 ##
 fig, ax = plt.subplots(1, 1)
 pp, _ = diagram_fig(ax,
-                            col="r",
-                            num=200,
-                            conf_fun=conf_fun,
-                            nonconf_fun=nonconf_fun,
-                            is_quenched=False)
+                    col="r",
+                    num=200,
+                    conf_fun=conf_fun,
+                    nonconf_fun=nonconf_fun,
+                    is_quenched=False)
 p_max = max(pp)
 pp, _ = diagram_fig(ax,
-                            col="b",
-                            num=200,
-                            conf_fun=conf_fun,
-                            nonconf_fun=nonconf_fun,
-                            is_quenched=True)
+                    col="b",
+                    num=200,
+                    conf_fun=conf_fun,
+                    nonconf_fun=nonconf_fun,
+                    is_quenched=True)
 p_max = max(p_max, max(pp))
-
 
 plt.show()
 
