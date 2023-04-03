@@ -15,34 +15,37 @@ from matplotlib.animation import PillowWriter
 # plot_diagram_power(q=np.linspace(0, 10, 1000), k=np.linspace(-4, 36, 1000), is_quenched=False)
 
 
+k_tab = np.linspace(80, -10, 200)
+plot_fixed_points_k(k_tab=k_tab, q=3, p=0.2)
+
 # ## movie plot
 #
 #
 # # Initialize the movie
-fig = plt.figure()
-line, = plt.plot([0, 1], [0.5, 0.5], ':k')
-que, = plt.plot([], [], label="quenched")
-ann, = plt.plot([], [], '--r', label="annealed")
-plt.legend()
-plt.xlim([0, 1])
-plt.ylim([0, 1])
-
-q = 8
-k = -4
-x0 = 0.5
-m = 0.5
-
-conf_fun = Power(q=q)
-nonconf_fun = Logistic(x0=x0, k=k, m=m)
-ps, cs = get_fixed_points(1000, conf_fun, nonconf_fun, is_quenched=True)
-que.set_data(ps, cs)
-
-ps, cs = get_fixed_points(1000, conf_fun, nonconf_fun, is_quenched=False)
-ann.set_data(ps, cs)
-plt.xlabel("p")
-plt.ylabel("$x^*$")
-plt.title(conf_fun.__str__() + " " + nonconf_fun.__str__())
-plt.show()
+# fig = plt.figure()
+# line, = plt.plot([0, 1], [0.5, 0.5], ':k')
+# que, = plt.plot([], [], label="quenched")
+# ann, = plt.plot([], [], '--r', label="annealed")
+# plt.legend()
+# plt.xlim([0, 1])
+# plt.ylim([0, 1])
+#
+# q = 8
+# k = -4
+# x0 = 0.5
+# m = 0.5
+#
+# conf_fun = Power(q=q)
+# nonconf_fun = Logistic(x0=x0, k=k, m=m)
+# ps, cs = get_fixed_points(1000, conf_fun, nonconf_fun, is_quenched=True)
+# que.set_data(ps, cs)
+#
+# ps, cs = get_fixed_points(1000, conf_fun, nonconf_fun, is_quenched=False)
+# ann.set_data(ps, cs)
+# plt.xlabel("p")
+# plt.ylabel("$x^*$")
+# plt.title(conf_fun.__str__() + " " + nonconf_fun.__str__())
+# plt.show()
 #
 # title = f"SymmetricPower-{q}q-both"
 # metadata = dict(title=title, artist="Arek")
@@ -118,9 +121,6 @@ plt.show()
 
 
 ## movie plot 3D
-
-
-
 
 
 # Initialize the movie

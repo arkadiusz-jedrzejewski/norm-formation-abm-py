@@ -214,6 +214,14 @@ def model_annealed_ode_d(x, p, conf_fun, nonconf_fun):
 
 
 def get_fixed_points_for(p, conf_fun, nonconf_fun, is_quenched):
+    """
+    function finds numerically fixed points for the model with Bernoulli distribution and determines their satabilty
+    :param p:
+    :param conf_fun:
+    :param nonconf_fun:
+    :param is_quenched:
+    :return:
+    """
     stable = []
     if is_quenched:
         # quenched model
@@ -230,6 +238,22 @@ def get_fixed_points_for(p, conf_fun, nonconf_fun, is_quenched):
         for x in x_fixed:
             stable.append(model_annealed_ode_d(x, p, conf_fun, nonconf_fun))
     return x_fixed, stable
+
+
+def plot_fixed_points_k(k_tab, q, p):
+    plt.figure()
+    x0 = 0.5
+    conf_fun = Power(q=q)
+    for k in k_tab:
+        nonconf_fun = Logistic(x0=x0, k=k, m=0.5)
+        x_fixed, stable = get_fixed_points_for(p, conf_fun, nonconf_fun, True)
+        for i, x in enumerate(x_fixed):
+            if stable[i]:
+                plt.plot(-k, x, ".k")
+            else:
+                plt.plot(-k, x, ".r")
+        print(get_fixed_points_for(p, conf_fun, nonconf_fun, True))
+    plt.show()
 
 
 # def get_fixed_points_uniform(num, q, f, is_quenched=False):

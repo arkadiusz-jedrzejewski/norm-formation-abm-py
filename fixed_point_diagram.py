@@ -275,15 +275,4 @@ p_max = max(p_max, max(pp))
 
 plt.show()
 
-plt.figure()
-k_tab = np.linspace(80, -10, 200)
-for k in k_tab:
-    nonconf_fun = Logistic(x0=x0, k=k, m=0.5)
-    x_fixed, stable = get_fixed_points_for(0.2, conf_fun, nonconf_fun, True)
-    for i, x in enumerate(x_fixed):
-        if stable[i]:
-            plt.plot(-k, x, ".k")
-        else:
-            plt.plot(-k, x, ".r")
-    print(get_fixed_points_for(0.2, conf_fun, nonconf_fun, True))
-plt.show()
+
