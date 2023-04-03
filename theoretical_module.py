@@ -160,7 +160,7 @@ def quenched_fun(x, p, conf_fun, nonconf_fun):
             conf_fun.get(1 - x) + conf_fun.get(x)) - conf_fun.get(x)
 
     # print(numerator, denominator, p)
-    return numerator / denominator - p
+    return numerator - denominator * p
 
 
 def model_quenched_ode_d(x, p, conf_fun, nonconf_fun):
@@ -196,7 +196,7 @@ def annealed_fun(x, p, conf_fun, nonconf_fun):
     :return:
     """
     numerator = x * conf_fun.get(1 - x) - (1 - x) * conf_fun.get(x)
-    return numerator / (nonconf_fun.get(x) - x + numerator) - p
+    return numerator - (nonconf_fun.get(x) - x + numerator) * p
 
 
 def model_annealed_ode_d(x, p, conf_fun, nonconf_fun):
@@ -225,34 +225,38 @@ def get_fixed_points_for(p, conf_fun, nonconf_fun, is_quenched):
     stable = []
     if is_quenched:
         # quenched model
-        x_fixed = get_roots(lambda x: quenched_fun(x, p, conf_fun, nonconf_fun), 0, 1, 0.001)
-        x_fixed.append(0.5)
+        x_fixed = get_roots(lambda x: quenched_fun(x, p, conf_fun, nonconf_fun), -0.0001, 1.0001, 0.001)
+        #x_fixed.append(0.5)
         for x in x_fixed:
             stable.append(model_quenched_ode_d(x, p, conf_fun, nonconf_fun))
     else:
         # annealed model
         # (for other than Bernoulli distributions this results still holds
         # ps is the expected value of the distribution)
-        x_fixed = get_roots(lambda x: annealed_fun(x, p, conf_fun, nonconf_fun), 0, 1, 0.001)
-        x_fixed.append(0.5)
+        x_fixed = get_roots(lambda x: annealed_fun(x, p, conf_fun, nonconf_fun), -0.0001, 1.0001, 0.001)
+        #x_fixed.append(0.5)
         for x in x_fixed:
             stable.append(model_annealed_ode_d(x, p, conf_fun, nonconf_fun))
     return x_fixed, stable
 
 
-def plot_fixed_points_k(k_tab, q, p):
+def plot_fixed_points_k(k_tab, q, p, m, is_quanched):
     plt.figure()
     x0 = 0.5
     conf_fun = Power(q=q)
     for k in k_tab:
-        nonconf_fun = Logistic(x0=x0, k=k, m=0.5)
-        x_fixed, stable = get_fixed_points_for(p, conf_fun, nonconf_fun, True)
+        nonconf_fun = Logistic(x0=x0, k=k, m=m)
+        x_fixed, stable = get_fixed_points_for(p, conf_fun, nonconf_fun, is_quanched)
         for i, x in enumerate(x_fixed):
             if stable[i]:
                 plt.plot(k, x, ".k")
             else:
                 plt.plot(k, x, ".r")
-        print(get_fixed_points_for(p, conf_fun, nonconf_fun, True))
+        print(get_fixed_points_for(p, conf_fun, nonconf_fun, is_quanched))
+    plt.xlim([min(k_tab), max(k_tab)])
+    plt.xlabel("$k$")
+    plt.ylabel("$a$")
+    plt.title(conf_fun.__str__() + f" p={p} m={m}")
     plt.show()
 
 
