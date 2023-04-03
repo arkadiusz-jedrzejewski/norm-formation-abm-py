@@ -19,30 +19,30 @@ from matplotlib.animation import PillowWriter
 #
 #
 # # Initialize the movie
-# fig = plt.figure()
-# line, = plt.plot([0, 1], [0.5, 0.5], ':k')
-# que, = plt.plot([], [], label="quenched")
-# ann, = plt.plot([], [], '--r', label="annealed")
-# plt.legend()
-# plt.xlim([0, 1])
-# plt.ylim([0, 1])
-#
-# q = 8
-# k = -4
-# x0 = 0.5
-# m = 0.5
-#
-# conf_fun = SymmetricPower(q=q)
-# nonconf_fun = Logistic(x0=x0, k=k, m=m)
-# ps, cs = get_fixed_points(1000, conf_fun, nonconf_fun, is_quenched=True)
-# que.set_data(ps, cs)
-#
-# ps, cs = get_fixed_points(1000, conf_fun, nonconf_fun, is_quenched=False)
-# ann.set_data(ps, cs)
-# plt.xlabel("p")
-# plt.ylabel("$x^*$")
-# plt.title(conf_fun.__str__() + " " + nonconf_fun.__str__())
-# #plt.show()
+fig = plt.figure()
+line, = plt.plot([0, 1], [0.5, 0.5], ':k')
+que, = plt.plot([], [], label="quenched")
+ann, = plt.plot([], [], '--r', label="annealed")
+plt.legend()
+plt.xlim([0, 1])
+plt.ylim([0, 1])
+
+q = 8
+k = -4
+x0 = 0.5
+m = 0.5
+
+conf_fun = Power(q=q)
+nonconf_fun = Logistic(x0=x0, k=k, m=m)
+ps, cs = get_fixed_points(1000, conf_fun, nonconf_fun, is_quenched=True)
+que.set_data(ps, cs)
+
+ps, cs = get_fixed_points(1000, conf_fun, nonconf_fun, is_quenched=False)
+ann.set_data(ps, cs)
+plt.xlabel("p")
+plt.ylabel("$x^*$")
+plt.title(conf_fun.__str__() + " " + nonconf_fun.__str__())
+plt.show()
 #
 # title = f"SymmetricPower-{q}q-both"
 # metadata = dict(title=title, artist="Arek")
@@ -124,104 +124,104 @@ from matplotlib.animation import PillowWriter
 
 
 # Initialize the movie
-
-q = 8
-k = -4
-x0 = 0.5
-m = 0.5
-
-fig, axs = plt.subplots(1, figsize=(7, 10), subplot_kw={'projection': '3d'})
-# plot_diagram_power_fun_k(axs, q=q, ks=np.linspace(-4, 50, 100), is_quenched=True)
-
-# que, = axs.plot3D([], [], [], label="quenched")
-# axs.set_xlim([-4, 50])
-# axs.set_ylim([0, 1])
-# axs.set_zlim([0, 1])
-# axs.set_xlabel("k")
-# axs.set_ylabel("p")
-# axs.set_zlabel("$x^*$")
-
-# plot_diagram_power_fun_k(axs, q=q, ks=np.linspace(-4, 50, 100), is_quenched=False)
 #
-# ann, = axs.plot3D([], [], [], label="annealed")
-# axs.set_xlim([-4, 50])
-# axs.set_ylim([0, 1])
-# axs.set_zlim([0, 1])
-# axs.set_xlabel("k")
-# axs.set_ylabel("p")
-# axs.set_zlabel("$x^*$")
-#
-plot_diagram_symmetric_power_fun_k(axs, q=q, ks=np.linspace(-4, 50, 100))
-symm, = axs.plot3D([], [], [], label="annealed")
-axs.set_xlim([-4, 50])
-axs.set_ylim([0, 1])
-axs.set_zlim([0, 1])
-axs.set_xlabel("k")
-axs.set_ylabel("p")
-axs.set_zlabel("$x^*$")
-
-title = f"Diagrams3D-{q}q-both"
-metadata = dict(title=title, artist="Arek")
-writer = PillowWriter(fps=15, metadata=metadata)
-
-with writer.saving(fig, title + ".gif", 100):
-    for k in np.geomspace(1, 55, 50) - 5:
-        conf_fun = Power(q=q)
-        nonconf_fun = Logistic(x0=x0, k=k, m=m)
-
-        fig.suptitle(nonconf_fun.__str__())
-
-        # ps, cs = get_fixed_points(1000, conf_fun, nonconf_fun, is_quenched=True)
-        # que.set_data([k] * len(ps), ps)
-        # que.set_3d_properties(cs)
-
-        # ps, cs = get_fixed_points(1000, conf_fun, nonconf_fun, is_quenched=False)
-        # ann.set_data([k] * len(ps), ps)
-        # ann.set_3d_properties(cs)
-        #
-        conf_fun = SymmetricPower(q=q)
-        ps, cs = get_fixed_points(1000, conf_fun, nonconf_fun, is_quenched=True)
-        symm.set_data([k] * len(ps), ps)
-        symm.set_3d_properties(cs)
-        #
-        # ps, cs = get_fixed_points(1000, conf_fun, nonconf_fun, is_quenched=False)
-        # ann2.set_data(ps, cs)
-        # axs[1].set_title(f"{conf_fun.__str__()}")
-        plt.tight_layout()
-        writer.grab_frame()
-
-# with writer.saving(fig, "writer_test.mp4", 100):
-#     for i in range(n):
-#         x0 = x[i]
-#         y0 = y[i]
-#         red_circle.set_data(x0, y0)
-#         writer.grab_frame()
-# qd = q = 6
+# q = 8
+# k = -4
 # x0 = 0.5
-# kd = k = 16
 # m = 0.5
 #
-# conf_fun = Power(q=q)
-# print(conf_fun)
+# fig, axs = plt.subplots(1, figsize=(7, 10), subplot_kw={'projection': '3d'})
+# # # plot_diagram_power_fun_k(axs, q=q, ks=np.linspace(-4, 50, 100), is_quenched=True)
 #
-# plot_diagram_power_fun_k(q=q, ks=np.linspace(-3.5, 40, 100), is_quenched=False)
-# tikzplotlib.save("test.tikz")
-# nonconf_fun = Logistic(x0=x0, k=-3.5, m=m)
-# print(nonconf_fun)
+# # que, = axs.plot3D([], [], [], label="quenched")
+# # axs.set_xlim([-4, 50])
+# # axs.set_ylim([0, 1])
+# # axs.set_zlim([0, 1])
+# # axs.set_xlabel("k")
+# # axs.set_ylabel("p")
+# # axs.set_zlabel("$x^*$")
 #
-# ps, cs = get_fixed_points(1000, conf_fun, nonconf_fun, is_quenched=False)
-# plt.plot([-3.5]*len(ps), ps, cs)
+# # plot_diagram_power_fun_k(axs, q=q, ks=np.linspace(-4, 50, 100), is_quenched=False)
+# #
+# # ann, = axs.plot3D([], [], [], label="annealed")
+# # axs.set_xlim([-4, 50])
+# # axs.set_ylim([0, 1])
+# # axs.set_zlim([0, 1])
+# # axs.set_xlabel("k")
+# # axs.set_ylabel("p")
+# # axs.set_zlabel("$x^*$")
+# #
+# plot_diagram_symmetric_power_fun_k(axs, q=q, ks=np.linspace(-4, 50, 100))
+# symm, = axs.plot3D([], [], [], label="annealed")
+# axs.set_xlim([-4, 50])
+# axs.set_ylim([0, 1])
+# axs.set_zlim([0, 1])
+# axs.set_xlabel("k")
+# axs.set_ylabel("p")
+# axs.set_zlabel("$x^*$")
 #
-# nonconf_fun = Logistic(x0=x0, k=40, m=m)
-# print(nonconf_fun)
-# ps, cs = get_fixed_points(1000, conf_fun, nonconf_fun, is_quenched=False)
-# plt.plot([40]*len(ps), ps, cs, '--r')
+# title = f"Diagrams3D-{q}q-both"
+# metadata = dict(title=title, artist="Arek")
+# writer = PillowWriter(fps=15, metadata=metadata)
 #
-# plt.legend(["quenched", "annealed"])
-# plt.title(conf_fun.__str__() + " " + nonconf_fun.__str__())
-# plt.xlabel("p")
-# plt.ylabel("$x^*$")
-plt.show()
+# with writer.saving(fig, title + ".gif", 100):
+#     for k in np.geomspace(1, 55, 50) - 5:
+#         conf_fun = Power(q=q)
+#         nonconf_fun = Logistic(x0=x0, k=k, m=m)
+#
+#         fig.suptitle(nonconf_fun.__str__())
+#
+#         # ps, cs = get_fixed_points(1000, conf_fun, nonconf_fun, is_quenched=True)
+#         # que.set_data([k] * len(ps), ps)
+#         # que.set_3d_properties(cs)
+#
+#         # ps, cs = get_fixed_points(1000, conf_fun, nonconf_fun, is_quenched=False)
+#         # ann.set_data([k] * len(ps), ps)
+#         # ann.set_3d_properties(cs)
+#         #
+#         conf_fun = SymmetricPower(q=q)
+#         ps, cs = get_fixed_points(1000, conf_fun, nonconf_fun, is_quenched=True)
+#         symm.set_data([k] * len(ps), ps)
+#         symm.set_3d_properties(cs)
+#         #
+#         # ps, cs = get_fixed_points(1000, conf_fun, nonconf_fun, is_quenched=False)
+#         # ann2.set_data(ps, cs)
+#         # axs[1].set_title(f"{conf_fun.__str__()}")
+#         plt.tight_layout()
+#         writer.grab_frame()
+#
+# # with writer.saving(fig, "writer_test.mp4", 100):
+# #     for i in range(n):
+# #         x0 = x[i]
+# #         y0 = y[i]
+# #         red_circle.set_data(x0, y0)
+# #         writer.grab_frame()
+# # qd = q = 6
+# # x0 = 0.5
+# # kd = k = 16
+# # m = 0.5
+# #
+# # conf_fun = Power(q=q)
+# # print(conf_fun)
+# #
+# # plot_diagram_power_fun_k(q=q, ks=np.linspace(-3.5, 40, 100), is_quenched=False)
+# # tikzplotlib.save("test.tikz")
+# # nonconf_fun = Logistic(x0=x0, k=-3.5, m=m)
+# # print(nonconf_fun)
+# #
+# # ps, cs = get_fixed_points(1000, conf_fun, nonconf_fun, is_quenched=False)
+# # plt.plot([-3.5]*len(ps), ps, cs)
+# #
+# # nonconf_fun = Logistic(x0=x0, k=40, m=m)
+# # print(nonconf_fun)
+# # ps, cs = get_fixed_points(1000, conf_fun, nonconf_fun, is_quenched=False)
+# # plt.plot([40]*len(ps), ps, cs, '--r')
+# #
+# # plt.legend(["quenched", "annealed"])
+# # plt.title(conf_fun.__str__() + " " + nonconf_fun.__str__())
+# # plt.xlabel("p")
+# # plt.ylabel("$x^*$")
+# plt.show()
 
 # plot_diagram_symmetric_power_fun_k(q=q, ks=np.linspace(20, 40, 100))
 #

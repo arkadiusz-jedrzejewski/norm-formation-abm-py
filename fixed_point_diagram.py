@@ -301,64 +301,44 @@ def quiver_fig(fig, ax, conf_fun, nonconf_fun, p):
         ax.plot(x1, x2, 'g')
 
 ##
-# q = 3
-# x0, k, m = 0.5, 30, 0.5
-# nonconf_fun = Logistic(x0=x0, k=k, m=m)
-# ##
-# p = 0.187
-#
-# fig, ax = plt.subplots(2, 1)
-# diagram_ann_que_fig(fig=fig,
-#                     ax=ax,
-#                     num=200,
-#                     q=q,
-#                     nonconf_fun=nonconf_fun)
-#
-# ax[0].plot([p, p], [0, 1], ':k')
-# ax[1].plot([p, p], [0, 1], ':k')
-#
-# conf_fun = Power(q=q)
-#
-# fig, ax = plt.subplots(2, 1)
-#
-# fig.suptitle(f"p={p} " + nonconf_fun.__str__())
-# time_evolution_fig(fig,
-#                    ax[0],
-#                    conf_fun,
-#                    nonconf_fun,
-#                    p=p,
-#                    t_max=100,
-#                    num=200,
-#                    xs_ini=np.linspace(0, 1, 10))
-#
-# conf_fun = SymmetricPower(q=q)
-# time_evolution_fig(fig,
-#                    ax[1],
-#                    conf_fun,
-#                    nonconf_fun,
-#                    p=p,
-#                    t_max=100,
-#                    num=200,
-#                    xs_ini=np.linspace(0, 1, 10))
-# plt.tight_layout()
-#
-# fig, ax = plt.subplots(2, 1)
-# fig.suptitle(f"p={p} " + nonconf_fun.__str__())
-#
-# conf_fun = Power(q=q)
-# quiver_fig(fig, ax[0], conf_fun, nonconf_fun, p)
-#
-# conf_fun = SymmetricPower(q=q)
-# quiver_fig(fig, ax[1], conf_fun, nonconf_fun, p)
-# plt.tight_layout()
-#
-# fig, ax = plt.subplots(2, 1)
-# fig.suptitle(f"p={p} " + nonconf_fun.__str__())
-#
-# conf_fun = Power(q=q)
-# time_evolution_que_fig(fig, ax[0], conf_fun, nonconf_fun, p, 100, 100, 1)
-# conf_fun = SymmetricPower(q=q)
-# time_evolution_que_fig(fig, ax[1], conf_fun, nonconf_fun, p, 100, 100, 1)
-# plt.tight_layout()
-#
-# plt.show()
+q = 5
+x0, k, m = 0.5, 15, 0.5
+p = 0.05
+
+nonconf_fun = Logistic(x0=x0, k=k, m=m)
+conf_fun = Power(q=q)
+
+title = f"Time-evolution " + conf_fun.__str__() + " " + nonconf_fun.__str__()
+
+##
+fig, ax = plt.subplots(1, 1)
+pp, _ = diagram_fig(ax,
+                            col="r",
+                            num=200,
+                            conf_fun=conf_fun,
+                            nonconf_fun=nonconf_fun,
+                            is_quenched=False)
+p_max = max(pp)
+pp, _ = diagram_fig(ax,
+                            col="b",
+                            num=200,
+                            conf_fun=conf_fun,
+                            nonconf_fun=nonconf_fun,
+                            is_quenched=True)
+p_max = max(p_max, max(pp))
+
+
+plt.show()
+
+plt.figure()
+k_tab = np.linspace(80, -10, 200)
+for k in k_tab:
+    nonconf_fun = Logistic(x0=x0, k=k, m=0.5)
+    x_fixed, stable = get_fixed_points_for(0.2, conf_fun, nonconf_fun, True)
+    for i, x in enumerate(x_fixed):
+        if stable[i]:
+            plt.plot(-k, x, ".k")
+        else:
+            plt.plot(-k, x, ".r")
+    print(get_fixed_points_for(0.2, conf_fun, nonconf_fun, True))
+plt.show()
