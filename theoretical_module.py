@@ -225,25 +225,28 @@ def get_fixed_points_for(p, conf_fun, nonconf_fun, is_quenched):
     stable = []
     if is_quenched:
         # quenched model
-        x_fixed = get_roots(lambda x: quenched_fun(x, p, conf_fun, nonconf_fun), -0.0001, 1.0001, 0.001)
-        #x_fixed.append(0.5)
+        x_fixed = get_roots(lambda x: quenched_fun(x, p, conf_fun, nonconf_fun), 0, 1, 0.001)
+        # x_fixed.append(0.5)
         for x in x_fixed:
             stable.append(model_quenched_ode_d(x, p, conf_fun, nonconf_fun))
     else:
         # annealed model
         # (for other than Bernoulli distributions this results still holds
         # ps is the expected value of the distribution)
-        x_fixed = get_roots(lambda x: annealed_fun(x, p, conf_fun, nonconf_fun), -0.0001, 1.0001, 0.001)
-        #x_fixed.append(0.5)
+        x_fixed = get_roots(lambda x: annealed_fun(x, p, conf_fun, nonconf_fun), 0, 1, 0.001)
+        # x_fixed.append(0.5)
         for x in x_fixed:
             stable.append(model_annealed_ode_d(x, p, conf_fun, nonconf_fun))
     return x_fixed, stable
 
 
-def plot_fixed_points_k(k_tab, q, p, m, is_quanched):
+def plot_fixed_points_k(k_tab, q, p, m, is_quanched, is_symmetric):
     plt.figure()
     x0 = 0.5
-    conf_fun = Power(q=q)
+    if is_symmetric:
+        conf_fun = SymmetricPower(q=q)
+    else:
+        conf_fun = Power(q=q)
     for k in k_tab:
         nonconf_fun = Logistic(x0=x0, k=k, m=m)
         x_fixed, stable = get_fixed_points_for(p, conf_fun, nonconf_fun, is_quanched)
@@ -254,10 +257,58 @@ def plot_fixed_points_k(k_tab, q, p, m, is_quanched):
                 plt.plot(k, x, ".r")
         print(get_fixed_points_for(p, conf_fun, nonconf_fun, is_quanched))
     plt.xlim([min(k_tab), max(k_tab)])
+    plt.ylim([0, 1])
     plt.xlabel("$k$")
     plt.ylabel("$a$")
     plt.title(conf_fun.__str__() + f" p={p} m={m}")
-    plt.show()
+
+
+def plot_fixed_points_p(p_tab, q, k, m, is_quanched, is_symmetric):
+    plt.figure()
+    x0 = 0.5
+    if is_symmetric:
+        conf_fun = SymmetricPower(q=q)
+    else:
+        conf_fun = Power(q=q)
+    nonconf_fun = Logistic(x0=x0, k=k, m=m)
+    for p in p_tab:
+        x_fixed, stable = get_fixed_points_for(p, conf_fun, nonconf_fun, is_quanched)
+        for i, x in enumerate(x_fixed):
+            if stable[i]:
+                plt.plot(p, x, ".k")
+            else:
+                plt.plot(p, x, ".r")
+        print(get_fixed_points_for(p, conf_fun, nonconf_fun, is_quanched))
+    plt.xlim([min(p_tab), max(p_tab)])
+    plt.ylim([0, 1])
+    plt.xlabel("$p$")
+    plt.ylabel("$a$")
+    plt.title(conf_fun.__str__() + f" k={k} m={m}")
+
+
+def plot_fixed_points_m(m_tab, q, k, p, is_quanched, is_symmetric):
+    plt.figure()
+    x0 = 0.5
+    if is_symmetric:
+        conf_fun = SymmetricPower(q=q)
+    else:
+        conf_fun = Power(q=q)
+    for m in m_tab:
+        print(m)
+        nonconf_fun = Logistic(x0=x0, k=k, m=m)
+        x_fixed, stable = get_fixed_points_for(p, conf_fun, nonconf_fun, is_quanched)
+        for i, x in enumerate(x_fixed):
+            if stable[i]:
+                plt.plot(m, x, ".k")
+            else:
+                plt.plot(m, x, ".r")
+        print(get_fixed_points_for(p, conf_fun, nonconf_fun, is_quanched))
+    plt.xlim([0, 1])
+    plt.ylim([0, 1])
+    plt.xlabel("$m$")
+    plt.ylabel("$a$")
+    plt.title(conf_fun.__str__() + f" k={k} p={p}")
+
 
 
 # def get_fixed_points_uniform(num, q, f, is_quenched=False):
@@ -345,6 +396,8 @@ def rootsearch(f, a, b, dx) -> tuple:
     """
     x1, f1 = a, f(a)
     x2 = a + dx
+    if x2 > b:
+        x2 = b
     f2 = f(x2)
     while f1 * f2 > 0:
         if x1 >= b:
@@ -412,11 +465,13 @@ def get_roots(f, a, b, dx) -> list:
     roots = []
     while True:
         x1, x2 = rootsearch(f, a, b, dx)
+        # print(x1,x2)
         if x1 is None:
             break
         else:
             a = x2
             root = bisection(f, x1, x2, True)
+            # print("root", root)
             if root is not None:
                 if root < b:
                     roots.append(root)
