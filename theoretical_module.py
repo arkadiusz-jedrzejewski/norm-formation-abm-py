@@ -19,14 +19,14 @@ class Logistic:
         if hasattr(x, "__len__"):
             sol = np.copy(x)
             i = np.logical_and(1 >= x, x >= 0)
-            sol[i] = 2.0 * self.m / (1 + np.exp(self.k * (sol[i] - self.x0)))
+            sol[i] = 2.0 * self.m / (1 + np.exp(-self.k * (sol[i] - self.x0)))
             sol[np.logical_not(i)] = 0
             return sol
         if 0 <= x <= 1:
-            return 2.0 * self.m / (1 + np.exp(self.k * (x - self.x0)))
-        elif x<0:
+            return 2.0 * self.m / (1 + np.exp(-self.k * (x - self.x0)))
+        elif x < 0:
             return 0
-        elif x>1:
+        elif x > 1:
             return 1
 
     def get_d(self, x):
@@ -38,8 +38,8 @@ class Logistic:
         if self.k == 0:
             return x * 0
         else:
-            return - 2 * self.m * self.k * np.exp(self.k * (x - self.x0)) \
-                / np.power(1 + np.exp(self.k * (x - self.x0)), 2)
+            return 2 * self.m * self.k * np.exp(-self.k * (x - self.x0)) \
+                / np.power(1 + np.exp(-self.k * (x - self.x0)), 2)
 
     def __str__(self):
         return f"Logistic(x0={self.x0}, k={self.k:.4f}, m={self.m})"
@@ -145,6 +145,172 @@ def get_fixed_points(num, conf_fun, nonconf_fun, is_quenched=False):
     return ps, cs
 
 
+def quenched_fun(x, p, conf_fun, nonconf_fun):
+    """
+    function used to find numerically fixed points for the quenched model with Bernoulli distribution
+    :param x:
+    :param p:
+    :param conf_fun:
+    :param nonconf_fun:
+    :return:
+    """
+    # print(x)
+    numerator = x * (conf_fun.get(1 - x) + conf_fun.get(x)) - conf_fun.get(x)
+    denominator = nonconf_fun.get(x) * (
+            conf_fun.get(1 - x) + conf_fun.get(x)) - conf_fun.get(x)
+
+    # print(numerator, denominator, p)
+    return numerator - denominator * p
+
+
+def model_quenched_ode_d(x, p, conf_fun, nonconf_fun):
+    """
+    function used to determine numerically the stability of fixed points for the quenched model with Bernoulli distribution
+    :param x:
+    :param p:
+    :param conf_fun:
+    :param nonconf_fun:
+    :return:
+    """
+    x2 = conf_fun.get(x) / (conf_fun.get(1 - x) + conf_fun.get(x))
+
+    F11 = nonconf_fun.get_d(x) * p - 1
+    F12 = nonconf_fun.get_d(x) * (1 - p)
+    F21 = (1 - x2) * conf_fun.get_d(x) * p + x2 * conf_fun.get_d(1 - x) * p
+    F22 = -conf_fun.get(x) + (1 - x2) * conf_fun.get_d(x) * (1 - p) \
+          - conf_fun.get(1 - x) + x2 * conf_fun.get_d(1 - x) * (1 - p)
+
+    det = F11 * F22 - F12 * F21
+    tra = F11 + F22
+
+    return np.logical_and(det > 0, tra < 0)
+
+
+def annealed_fun(x, p, conf_fun, nonconf_fun):
+    """
+    function used to find numerically fixed points for the annealed model (any distribution - p is the average)
+    :param x:
+    :param p:
+    :param conf_fun:
+    :param nonconf_fun:
+    :return:
+    """
+    numerator = x * conf_fun.get(1 - x) - (1 - x) * conf_fun.get(x)
+    return numerator - (nonconf_fun.get(x) - x + numerator) * p
+
+
+def model_annealed_ode_d(x, p, conf_fun, nonconf_fun):
+    """
+    function used to determine numerically the stability of fixed points for the annealed model (any distribution - p is the average)
+    :param x:
+    :param p:
+    :param conf_fun:
+    :param nonconf_fun:
+    :return:
+    """
+    dF = p * (nonconf_fun.get_d(x) - 1) + (1 - p) * (
+            (1 - x) * conf_fun.get_d(x) + x * conf_fun.get_d(1 - x) - conf_fun.get(x) - conf_fun.get(1 - x))
+    return dF < 0
+
+
+def get_fixed_points_for(p, conf_fun, nonconf_fun, is_quenched):
+    """
+    function finds numerically fixed points for the model with Bernoulli distribution and determines their satabilty
+    :param p:
+    :param conf_fun:
+    :param nonconf_fun:
+    :param is_quenched:
+    :return:
+    """
+    stable = []
+    if is_quenched:
+        # quenched model
+        x_fixed = get_roots(lambda x: quenched_fun(x, p, conf_fun, nonconf_fun), 0, 1, 0.001)
+        # x_fixed.append(0.5)
+        for x in x_fixed:
+            stable.append(model_quenched_ode_d(x, p, conf_fun, nonconf_fun))
+    else:
+        # annealed model
+        # (for other than Bernoulli distributions this results still holds
+        # ps is the expected value of the distribution)
+        x_fixed = get_roots(lambda x: annealed_fun(x, p, conf_fun, nonconf_fun), 0, 1, 0.001)
+        # x_fixed.append(0.5)
+        for x in x_fixed:
+            stable.append(model_annealed_ode_d(x, p, conf_fun, nonconf_fun))
+    return x_fixed, stable
+
+
+def plot_fixed_points_k(k_tab, q, p, m, is_quanched, is_symmetric):
+    plt.figure()
+    x0 = 0.5
+    if is_symmetric:
+        conf_fun = SymmetricPower(q=q)
+    else:
+        conf_fun = Power(q=q)
+    for k in k_tab:
+        nonconf_fun = Logistic(x0=x0, k=k, m=m)
+        x_fixed, stable = get_fixed_points_for(p, conf_fun, nonconf_fun, is_quanched)
+        for i, x in enumerate(x_fixed):
+            if stable[i]:
+                plt.plot(k, x, ".k")
+            else:
+                plt.plot(k, x, ".r")
+        print(get_fixed_points_for(p, conf_fun, nonconf_fun, is_quanched))
+    plt.xlim([min(k_tab), max(k_tab)])
+    plt.ylim([0, 1])
+    plt.xlabel("$k$")
+    plt.ylabel("$a$")
+    plt.title(conf_fun.__str__() + f" p={p} m={m}")
+
+
+def plot_fixed_points_p(p_tab, q, k, m, is_quanched, is_symmetric):
+    plt.figure()
+    x0 = 0.5
+    if is_symmetric:
+        conf_fun = SymmetricPower(q=q)
+    else:
+        conf_fun = Power(q=q)
+    nonconf_fun = Logistic(x0=x0, k=k, m=m)
+    for p in p_tab:
+        x_fixed, stable = get_fixed_points_for(p, conf_fun, nonconf_fun, is_quanched)
+        for i, x in enumerate(x_fixed):
+            if stable[i]:
+                plt.plot(p, x, ".k")
+            else:
+                plt.plot(p, x, ".r")
+        print(get_fixed_points_for(p, conf_fun, nonconf_fun, is_quanched))
+    plt.xlim([min(p_tab), max(p_tab)])
+    plt.ylim([0, 1])
+    plt.xlabel("$p$")
+    plt.ylabel("$a$")
+    plt.title(conf_fun.__str__() + f" k={k} m={m}")
+
+
+def plot_fixed_points_m(m_tab, q, k, p, is_quanched, is_symmetric):
+    plt.figure()
+    x0 = 0.5
+    if is_symmetric:
+        conf_fun = SymmetricPower(q=q)
+    else:
+        conf_fun = Power(q=q)
+    for m in m_tab:
+        print(m)
+        nonconf_fun = Logistic(x0=x0, k=k, m=m)
+        x_fixed, stable = get_fixed_points_for(p, conf_fun, nonconf_fun, is_quanched)
+        for i, x in enumerate(x_fixed):
+            if stable[i]:
+                plt.plot(m, x, ".k")
+            else:
+                plt.plot(m, x, ".r")
+        print(get_fixed_points_for(p, conf_fun, nonconf_fun, is_quanched))
+    plt.xlim([0, 1])
+    plt.ylim([0, 1])
+    plt.xlabel("$m$")
+    plt.ylabel("$a$")
+    plt.title(conf_fun.__str__() + f" k={k} p={p}")
+
+
+
 # def get_fixed_points_uniform(num, q, f, is_quenched=False):
 #     cs = np.linspace(0.001, 0.999, num=num)
 #     a1 = cs - (conformity_function(cs, q) - nonconformity_function(cs, f)) / (
@@ -230,6 +396,8 @@ def rootsearch(f, a, b, dx) -> tuple:
     """
     x1, f1 = a, f(a)
     x2 = a + dx
+    if x2 > b:
+        x2 = b
     f2 = f(x2)
     while f1 * f2 > 0:
         if x1 >= b:
@@ -239,9 +407,9 @@ def rootsearch(f, a, b, dx) -> tuple:
             x2 = x1 + dx
             if x2 >= b:
                 x2 = b
-            #print("x1", x1, "roots", x2)
+            # print("x1", x1, "roots", x2)
             f2 = f(x2)
-            #print("f2", f2, "f1", f1)
+            # print("f2", f2, "f1", f1)
     else:
         return x1, x2
 
@@ -297,11 +465,13 @@ def get_roots(f, a, b, dx) -> list:
     roots = []
     while True:
         x1, x2 = rootsearch(f, a, b, dx)
+        # print(x1,x2)
         if x1 is None:
             break
         else:
             a = x2
             root = bisection(f, x1, x2, True)
+            # print("root", root)
             if root is not None:
                 if root < b:
                     roots.append(root)
