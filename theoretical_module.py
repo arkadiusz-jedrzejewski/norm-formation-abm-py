@@ -4,7 +4,7 @@ import math
 import numpy as np
 from scipy.special import lambertw
 import scipy.integrate as integrate
-from scipy.optimize import minimize, Bounds, fsolve
+from scipy.optimize import minimize, Bounds, fsolve, bisect
 
 import matplotlib.pyplot as plt
 
@@ -394,6 +394,7 @@ def rootsearch(f, a, b, dx) -> tuple:
     :param dx:  increment
     :return:    (x1, x2): an interval that contains the smallest root of f(x)
     """
+    print("f(b)", f(b), "f(b-dx)", f(b-dx))
     x1, f1 = a, f(a)
     x2 = a + dx
     if x2 > b:
@@ -470,8 +471,9 @@ def get_roots(f, a, b, dx) -> list:
             break
         else:
             a = x2
-            root = bisection(f, x1, x2, True)
-            # print("root", root)
+            #root = bisection(f, x1, x2, False)
+            root = bisect(f, x1, x2)
+            print("x1", x1, "x2", x2)
             if root is not None:
                 if root < b:
                     roots.append(root)
