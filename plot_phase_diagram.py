@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from theoretical_module import plot_fixed_points_p, plot_fixed_points_k, plot_fixed_points_m
+from theoretical_module import plot_fixed_points_p, plot_fixed_points_k, plot_fixed_points_m, plot_fixed_points_x0
 
 
 def get_sem(data):
@@ -10,7 +10,7 @@ def get_sem(data):
     return np.std(data, axis=1, ddof=1) / np.sqrt(np.size(data, axis=1))
 
 
-dir_name = "230406-sim-13"
+dir_name = "230418-sim-8"
 
 args = np.loadtxt(dir_name + "/args.csv", delimiter=",")
 args = args[:, 1]
@@ -24,29 +24,38 @@ is_annealed = int(params[11])
 num = 100
 if mode == 0:
     p_start, p_end, _ = params[1], params[2], int(params[3])
-    q, x0, k, m = params[5], params[6], params[7], params[8]
+    q, k, m, x0 = params[5], params[6], params[7], params[8]
 
-    plot_fixed_points_p(p_tab=np.linspace(0.0001, 1, num), q=q, k=k, m=m, is_quanched=not is_annealed, is_symmetric=True)
+    plot_fixed_points_p(p_tab=np.linspace(0.0001, 1, num), q=q, k=k, m=m, x0=x0, is_quanched=not is_annealed, is_symmetric=True)
     plt.xlim([p_start, p_end])
     plt.xlabel("p")
     plt.ylabel("a")
 elif mode == 1:
     k_start, k_end, _ = params[1], params[2], int(params[3])
-    q, x0, p, m = params[5], params[6], params[7], params[8]
+    q, p, m, x0 = params[5], params[6], params[7], params[8]
 
-    plot_fixed_points_k(k_tab=np.linspace(k_start, k_end, num), q=q, p=p, m=m, is_quanched=not is_annealed, is_symmetric=True)
+    plot_fixed_points_k(k_tab=np.linspace(k_start, k_end, num), q=q, p=p, m=m, x0=x0, is_quanched=not is_annealed, is_symmetric=True)
     plt.xlim([k_start, k_end])
-    plt.xlabel("p")
-    plt.ylabel("k")
+    plt.xlabel("k")
+    plt.ylabel("a")
 elif mode == 2:
     m_start, m_end, _ = params[1], params[2], int(params[3])
-    q, x0, p, k = params[5], params[6], params[7], params[8]
+    q, p, k, x0 = params[5], params[6], params[7], params[8]
 
-    plot_fixed_points_m(m_tab=np.linspace(m_start, m_end, num), q=q, p=p, k=k, is_quanched=not is_annealed,
+    plot_fixed_points_m(m_tab=np.linspace(m_start, m_end, num), q=q, p=p, k=k, x0=x0, is_quanched=not is_annealed,
                         is_symmetric=True)
     plt.xlim([m_start, m_end])
-    plt.xlabel("p")
-    plt.ylabel("m")
+    plt.xlabel("m")
+    plt.ylabel("a")
+elif mode == 3:
+    x0_start, x0_end, _ = params[1], params[2], int(params[3])
+    q, p, k, m = params[5], params[6], params[7], params[8]
+
+    plot_fixed_points_x0(x0_tab=np.linspace(x0_start, x0_end, num), q=q, p=p, k=k, m=m, is_quanched=not is_annealed,
+                        is_symmetric=True)
+    plt.xlim([x0_start, x0_end])
+    plt.xlabel("x0")
+    plt.ylabel("a")
 
 
 time_start = 800
