@@ -15,14 +15,23 @@ from matplotlib.animation import PillowWriter
 # plot_diagram_power(q=np.linspace(0, 10, 1000), k=np.linspace(-4, 36, 1000), is_quenched=False)
 
 
-k_tab = np.linspace(-50, 20, 200)
-plot_fixed_points_k(k_tab=k_tab, q=3, p=0.3, m=0.8, is_quanched=False, is_symmetric=False)
+# for p in np.linspace(0.0001, 1, 11):
+# k_tab = np.linspace(-100, 30, 200)
+# plot_fixed_points_k(k_tab=k_tab, q=6, p=p, m=0.5, x0=0.6, is_quanched=False, is_symmetric=True)
 
-p_tab = np.linspace(0.0001, 1, 200)
-plot_fixed_points_p(p_tab=p_tab, q=3, k=10, m=0.8, is_quanched=False, is_symmetric=False)
 
-m_tab = np.linspace(0, 0.9999, 200)
-plot_fixed_points_m(m_tab=m_tab, q=3, k=10, p=0.6, is_quanched=False, is_symmetric=False)
+# for x0 in np.linspace(0, 1, 11):
+#     p_tab = np.linspace(0.0001, 1, 200)
+#     plot_fixed_points_p(p_tab=p_tab, q=3, k=5, m=0.5, x0=x0, is_quanched=False, is_symmetric=True)
+
+for p in np.linspace(0, 1, 11):
+    x0_tab = np.linspace(0, 1, 200)
+    plot_fixed_points_x0(x0_tab=x0_tab, q=6, k=5, p=p, m=0.5, is_quanched=True, is_symmetric=False)
+
+# plot_fixed_points_x0(x0_tab=x0_tab, q=3, k=5, p=0.6, m=0.5, is_quanched=False, is_symmetric=False)
+# m_tab = np.linspace(0, 0.9999, 200)
+# plot_fixed_points_m(m_tab=m_tab, q=3, k=0, p=0.6, x0=0.3, is_quanched=False, is_symmetric=False)
+
 
 # k_tab = np.linspace(-50, 20, 200)
 # plot_fixed_points_k(k_tab=k_tab, q=1.5, p=0.3, m=0.6, is_quanched=False, is_symmetric=False)

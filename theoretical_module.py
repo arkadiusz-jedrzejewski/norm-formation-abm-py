@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 
 class Logistic:
-    def __init__(self, x0, k, m):
+    def __init__(self, x0, k, m=0.5):
         self.x0 = x0
         self.k = k
         self.m = m
@@ -240,9 +240,8 @@ def get_fixed_points_for(p, conf_fun, nonconf_fun, is_quenched):
     return x_fixed, stable
 
 
-def plot_fixed_points_k(k_tab, q, p, m, is_quanched, is_symmetric):
+def plot_fixed_points_k(k_tab, q, p, x0, m, is_quanched, is_symmetric):
     plt.figure()
-    x0 = 0.5
     if is_symmetric:
         conf_fun = SymmetricPower(q=q)
     else:
@@ -260,12 +259,11 @@ def plot_fixed_points_k(k_tab, q, p, m, is_quanched, is_symmetric):
     plt.ylim([0, 1])
     plt.xlabel("$k$")
     plt.ylabel("$a$")
-    plt.title(conf_fun.__str__() + f" p={p} m={m}")
+    plt.title(conf_fun.__str__() + f" p={p} m={m} x0={x0}")
 
 
-def plot_fixed_points_p(p_tab, q, k, m, is_quanched, is_symmetric):
+def plot_fixed_points_p(p_tab, q, k, x0, m, is_quanched, is_symmetric):
     plt.figure()
-    x0 = 0.5
     if is_symmetric:
         conf_fun = SymmetricPower(q=q)
     else:
@@ -283,12 +281,11 @@ def plot_fixed_points_p(p_tab, q, k, m, is_quanched, is_symmetric):
     plt.ylim([0, 1])
     plt.xlabel("$p$")
     plt.ylabel("$a$")
-    plt.title(conf_fun.__str__() + f" k={k} m={m}")
+    plt.title(conf_fun.__str__() + f" k={k} m={m} x0={x0}")
 
 
-def plot_fixed_points_m(m_tab, q, k, p, is_quanched, is_symmetric):
+def plot_fixed_points_m(m_tab, q, k, x0, p, is_quanched, is_symmetric):
     plt.figure()
-    x0 = 0.5
     if is_symmetric:
         conf_fun = SymmetricPower(q=q)
     else:
@@ -307,9 +304,30 @@ def plot_fixed_points_m(m_tab, q, k, p, is_quanched, is_symmetric):
     plt.ylim([0, 1])
     plt.xlabel("$m$")
     plt.ylabel("$a$")
-    plt.title(conf_fun.__str__() + f" k={k} p={p}")
+    plt.title(conf_fun.__str__() + f" k={k} p={p} x0={x0}")
 
 
+def plot_fixed_points_x0(x0_tab, q, k, p, m, is_quanched, is_symmetric):
+    plt.figure()
+    if is_symmetric:
+        conf_fun = SymmetricPower(q=q)
+    else:
+        conf_fun = Power(q=q)
+    for x0 in x0_tab:
+        print(x0)
+        nonconf_fun = Logistic(x0=x0, k=k, m=m)
+        x_fixed, stable = get_fixed_points_for(p, conf_fun, nonconf_fun, is_quanched)
+        for i, x in enumerate(x_fixed):
+            if stable[i]:
+                plt.plot(x0, x, ".k")
+            else:
+                plt.plot(x0, x, ".r")
+        print(get_fixed_points_for(p, conf_fun, nonconf_fun, is_quanched))
+    plt.xlim([0, 1])
+    plt.ylim([0, 1])
+    plt.xlabel("$x0$")
+    plt.ylabel("$a$")
+    plt.title(conf_fun.__str__() + f" k={k} p={p} m={m}")
 
 # def get_fixed_points_uniform(num, q, f, is_quenched=False):
 #     cs = np.linspace(0.001, 0.999, num=num)
@@ -474,9 +492,13 @@ def get_roots(f, a, b, dx) -> list:
             #root = bisection(f, x1, x2, False)
             root = bisect(f, x1, x2)
             print("x1", x1, "x2", x2)
+            print(root)
             if root is not None:
                 if root < b:
                     roots.append(root)
+                elif root == b:
+                    roots.append(root)
+                    break
     return roots
 
 
