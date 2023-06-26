@@ -26,7 +26,7 @@ def get_dir_name():
     return dir_name
 
 
-def run_single_sim(arg0_tuple, is_annealed, q, arg1, arg2, arg3, system_size, init_opinions, time_horizon, p_dir_name,
+def run_single_sim(arg0_tuple, is_annealed, is_symmetric, q, arg1, arg2, arg3, system_size, init_opinions, time_horizon, p_dir_name,
                    mode):
     if mode == 0:
         arg0_index, p, sim_number, seed = arg0_tuple
@@ -51,36 +51,37 @@ def run_single_sim(arg0_tuple, is_annealed, q, arg1, arg2, arg3, system_size, in
 
     file_name = p_dir_name + f"/{arg0_index}/sim-{sim_number}.txt"
     is_annealed = 1 if is_annealed else 0
+    is_symmetric = 1 if is_symmetric else 0
     subprocess.run(
-        f"norm_formation_abm.exe {file_name} {seed} {system_size} {time_horizon} {is_annealed} {init_opinions} {q} {x0} {k} {m} {p}")
+        f"norm_formation_abm.exe {file_name} {seed} {system_size} {time_horizon} {is_annealed} {is_symmetric} {init_opinions} {q} {x0} {k} {m} {p}")
 
 
-def create_diagram(p, is_annealed, sim_num, q, x0, k, m, system_size, time_horizon,
+def create_diagram(p, is_annealed, is_symmetric, sim_num, q, x0, k, m, system_size, time_horizon,
                    seed):
     if type(p) is tuple:
         arg_start, arg_stop, arg_num = p
-        header = "mode, p_start, p_stop, p_num, sim_num, q, k, m, x0, time_horizon, system_size, is_annealed"
+        header = "mode, p_start, p_stop, p_num, sim_num, q, k, m, x0, time_horizon, system_size, is_annealed, is_symmetric"
         arg1 = k
         arg2 = m
         arg3 = x0
         mode = 0
     elif type(k) is tuple:
         arg_start, arg_stop, arg_num = k
-        header = "mode, k_start, k_stop, k_num, sim_num, q, p, m, x0, time_horizon, system_size, is_annealed"
+        header = "mode, k_start, k_stop, k_num, sim_num, q, p, m, x0, time_horizon, system_size, is_annealed, is_symmetric"
         arg1 = p
         arg2 = m
         arg3 = x0
         mode = 1
     elif type(m) is tuple:
         arg_start, arg_stop, arg_num = m
-        header = "mode, m_start, m_stop, m_num, sim_num, q, p, k, x0, time_horizon, system_size, is_annealed"
+        header = "mode, m_start, m_stop, m_num, sim_num, q, p, k, x0, time_horizon, system_size, is_annealed, is_symmetric"
         arg1 = p
         arg2 = k
         arg3 = x0
         mode = 2
     elif type(x0) is tuple:
         arg_start, arg_stop, arg_num = x0
-        header = "mode, x0_start, x0_stop, x0_num, sim_num, q, p, k, m, time_horizon, system_size, is_annealed"
+        header = "mode, x0_start, x0_stop, x0_num, sim_num, q, p, k, m, time_horizon, system_size, is_annealed, is_symmetric"
         arg1 = p
         arg2 = k
         arg3 = m
@@ -95,8 +96,8 @@ def create_diagram(p, is_annealed, sim_num, q, x0, k, m, system_size, time_horiz
     np.savetxt(dir_name + "/sim_num.csv", [sim_num], fmt="%i")
     np.savetxt(dir_name + "/params.csv",
                [[mode, arg_start, arg_stop, arg_num, sim_num, q, arg1, arg2, arg3, time_horizon, system_size,
-                 is_annealed]],
-               fmt="%i, " + "%.8f, " * 2 + "%i, %i, %.8f, %.8f, %.8f, %.8f, %i, %i, %i",
+                 is_annealed, is_symmetric]],
+               fmt="%i, " + "%.8f, " * 2 + "%i, %i, %.8f, %.8f, %.8f, %.8f, %i, %i, %i, %i",
                header=header)
 
     arg0_tuples = []
@@ -114,12 +115,13 @@ def create_diagram(p, is_annealed, sim_num, q, x0, k, m, system_size, time_horiz
     with mp.Pool(6) as pool:
         pool.map(partial(run_single_sim,
                          is_annealed=is_annealed,
+                         is_symmetric=is_symmetric,
                          q=q,
                          arg1=arg1,
                          arg2=arg2,
                          arg3=arg3,
                          system_size=system_size,
-                         init_opinions=-1,
+                         init_opinions=1,
                          time_horizon=time_horizon,
                          p_dir_name=dir_name,
                          mode=mode
@@ -151,13 +153,14 @@ if __name__ == "__main__":
     #                system_size=10000,
     #                time_horizon=1000,
     #                seed=1)
-    create_diagram(p=0.5,
-                   is_annealed=True,
-                   sim_num=2,
-                   q=5,
-                   x0=(0, 1, 25),
-                   k=5,
+    create_diagram(p=(0, 1, 11),
+                   is_annealed=False,
+                   is_symmetric=True,
+                   sim_num=10000,
+                   q=3,
+                   x0=0.5,
+                   k=-15,
                    m=0.5,
-                   system_size=10000,
-                   time_horizon=1000,
+                   system_size=10,
+                   time_horizon=5,
                    seed=1)
