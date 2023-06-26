@@ -52,6 +52,7 @@ def run_single_sim(arg0_tuple, is_annealed, is_symmetric, q, arg1, arg2, arg3, s
     file_name = p_dir_name + f"/{arg0_index}/sim-{sim_number}.txt"
     is_annealed = 1 if is_annealed else 0
     is_symmetric = 1 if is_symmetric else 0
+    #print(f"norm_formation_abm.exe {file_name} {seed} {system_size} {time_horizon} {is_annealed} {is_symmetric} {init_opinions} {q} {x0} {k} {m} {p}")
     subprocess.run(
         f"norm_formation_abm.exe {file_name} {seed} {system_size} {time_horizon} {is_annealed} {is_symmetric} {init_opinions} {q} {x0} {k} {m} {p}")
 
@@ -156,11 +157,11 @@ if __name__ == "__main__":
     create_diagram(p=(0, 1, 11),
                    is_annealed=False,
                    is_symmetric=True,
-                   sim_num=10000,
+                   sim_num=10,
                    q=3,
                    x0=0.5,
                    k=-15,
                    m=0.5,
-                   system_size=10,
-                   time_horizon=5,
-                   seed=1)
+                   system_size=1000,
+                   time_horizon=10000,
+                   seed=15)
