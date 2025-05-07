@@ -10,7 +10,7 @@ The model was used in:
 ## Related Repository
 - C++ implementation of the model: [https://github.com/arkadiusz-jedrzejewski/norm-formation-abm](https://github.com/arkadiusz-jedrzejewski/norm-formation-abm)
 - Matlab scripts to analyze results: [https://github.com/arkadiusz-jedrzejewski/norm-formation-abm-py](https://github.com/arkadiusz-jedrzejewski/norm-formation-m)
-- 
+
 ## Citation
 If you find this code helpful or use it in your work, please cite the following paper for attribution:
 ```
